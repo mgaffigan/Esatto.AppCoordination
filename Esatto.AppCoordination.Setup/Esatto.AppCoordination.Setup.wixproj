@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>3.10</ProductVersion>
+    <ProjectGuid>26493827-d78d-49b6-bdfe-4db4bc117f06</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <OutputName>Esatto.AppCoordination.Setup</OutputName>
+    <OutputType>Package</OutputType>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+    <InstallerPlatform>x86</InstallerPlatform>
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug</DefineConstants>
+    <SuppressValidation>False</SuppressValidation>
+    <SuppressIces>ICE40;ICE61</SuppressIces>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Product.wxs" />
+  </ItemGroup>
+  <ItemGroup>
+    <WixExtension Include="WixUtilExtension">
+      <HintPath>$(WixExtDir)\WixUtilExtension.dll</HintPath>
+      <Name>WixUtilExtension</Name>
+    </WixExtension>
+    <WixExtension Include="WixNetFxExtension">
+      <HintPath>$(WixExtDir)\WixNetFxExtension.dll</HintPath>
+      <Name>WixNetFxExtension</Name>
+    </WixExtension>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Esatto.AppCoordination.Common\Esatto.AppCoordination.Common.csproj">
+      <Name>Esatto.AppCoordination.Common</Name>
+      <Project>{c313dece-2c33-433c-96f8-353dc5552d1a}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\Esatto.AppCoordination.Coordinator\Esatto.AppCoordination.Coordinator.csproj">
+      <Name>Esatto.AppCoordination.Coordinator</Name>
+      <Project>{568ebcb1-c713-4c4c-9308-011c2e3693ed}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\Esatto.AppCoordination.DemoClient\Esatto.AppCoordination.DemoClient.csproj">
+      <Name>Esatto.AppCoordination.DemoClient</Name>
+      <Project>{c249f04d-c6fe-447a-a6ba-2b2d91c3a743}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\Esatto.AppCoordination.SystemHost\Esatto.AppCoordination.SystemHost.csproj">
+      <Name>Esatto.AppCoordination.SystemHost</Name>
+      <Project>{e4e45f2b-2a0b-43ea-8d96-35a90cb81d1d}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(WixTargetsPath)" />
+  <!--
+	To modify your build process, add your task inside one of the targets below and uncomment it.
+	Other similar extension points exist, see Wix.targets.
+	<Target Name="BeforeBuild">
+	</Target>
+	<Target Name="AfterBuild">
+	</Target>
+	-->
+  <PropertyGroup>
+    <EsattoDevEnvInstallPath Condition="'$(EsattoDevEnvInstallPath)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\In Touch Technologies\Esatto\Deployment DevEnv@InstallDir)</EsattoDevEnvInstallPath>
+    <EsattoDevEnvInstallPath Condition="'$(EsattoDevEnvInstallPath)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\In Touch Technologies\Esatto\Deployment DevEnv@InstallDir)</EsattoDevEnvInstallPath>
+    <EsattoMsBuildExtension Condition="'$(EsattoMsBuildExtension)' == ''">$(EsattoDevEnvInstallPath)\Esatto.Deployment.MSBuildExtensions.dll</EsattoMsBuildExtension>
+  </PropertyGroup>
+  <UsingTask TaskName="ConvertAssemblyToTypeLib" AssemblyFile="$(EsattoMsBuildExtension)" Condition="Exists('$(EsattoMsBuildExtension)')" />
+  <ItemGroup>
+    <Content Include="Esatto.AppCoordination.SystemHost_exe_heatTransform.xslt" />
+    <Content Include="Esatto.AppCoordination.Coordinator_exe_heatTransform.xslt" />
+    <Content Include="Esatto.AppCoordination.Common_dll_heatTransform.xslt" />
+  </ItemGroup>
+  <Target Name="LocateEsattoAssemblies">
+    <ItemGroup>
+      <EsattoComAssembly Include="..\Esatto.AppCoordination.Common\bin\$(Configuration)\Esatto.AppCoordination.Common.dll">
+        <ExportTlb>true</ExportTlb>
+        <DllWxsTransform>Esatto.AppCoordination.Common_dll_heatTransform.xslt</DllWxsTransform>
+        <Link>Esatto.AppCoordination.Common.dll</Link>
+        <!--<TlbWxsTransform>Esatto.AppCoordination.Common_tlb_heatTransform.xslt</TlbWxsTransform>-->
+      </EsattoComAssembly>
+      <EsattoComAssembly Include="..\Esatto.AppCoordination.Coordinator\bin\$(Configuration)\Esatto.AppCoordination.Coordinator.exe">
+        <DllWxsTransform>Esatto.AppCoordination.Coordinator_exe_heatTransform.xslt</DllWxsTransform>
+        <Link>Esatto.AppCoordination.Coordinator.exe</Link>
+      </EsattoComAssembly>
+      <EsattoComAssembly Include="..\Esatto.AppCoordination.SystemHost\bin\$(Configuration)\Esatto.AppCoordination.SystemHost.exe">
+        <DllWxsTransform>Esatto.AppCoordination.SystemHost_exe_heatTransform.xslt</DllWxsTransform>
+        <Link>Esatto.AppCoordination.SystemHost.exe</Link>
+      </EsattoComAssembly>
+    </ItemGroup>
+    <!-- transform to add other paths -->
+    <ItemGroup>
+      <ExportedEsattoTlbs Include="%(EsattoComAssembly.RootDir)%(Directory)%(Filename).tlb" Condition="'%(EsattoComAssembly.ExportTlb)' == 'true'">
+        <TlbExportSource>%(Identity)</TlbExportSource>
+        <WxsTransform>%(EsattoComAssembly.TlbWxsTransform)</WxsTransform>
+      </ExportedEsattoTlbs>
+      <EsattoHeatExecution Include="%(EsattoComAssembly.Identity)">
+        <TargetPath>$(IntermediateOutputPath)%(Filename)_ComReg.wxs</TargetPath>
+        <ComponentGroup>$([System.String]::new('%(Filename)').Replace('.', ''))_ComReg</ComponentGroup>
+        <WxsTransform>%(EsattoComAssembly.DllWxsTransform)</WxsTransform>
+      </EsattoHeatExecution>
+      <EsattoHeatExecution Include="%(ExportedEsattoTlbs.Identity)">
+        <TargetPath>$(IntermediateOutputPath)%(Filename)_TlbReg.wxs</TargetPath>
+        <ComponentGroup>$([System.String]::new('%(Filename)').Replace('.', ''))_TlbReg</ComponentGroup>
+        <WxsTransform>%(ExportedEsattoTlbs.WxsTransform)</WxsTransform>
+      </EsattoHeatExecution>
+      <!-- add generated wxs files -->
+      <Compile Include="@(EsattoHeatExecution -> '%(TargetPath)')" />
+      <FileWrites Include="@(EsattoHeatExecution -> '%(TargetPath)')" />
+      <FileWrites Include="@(ExportedEsattoTlbs)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="ExportEsattoTlbs" DependsOnTargets="LocateEsattoAssemblies;PrepareForBuild" Inputs="@(ExportedEsattoTlbs -> '%(TlbExportSource)')" Outputs="@(ExportedEsattoTlbs -> '%(Identity)')">
+    <ConvertAssemblyToTypeLib InputAssembly="%(ExportedEsattoTlbs.TlbExportSource)" OutputTlb="%(Identity)" />
+    <!--<Exec Command="&quot;$(EsattoMSBuildComToolsPath)&quot; &quot;%(ExportedEsattoTlbs.TlbExportSource)&quot; &quot;%(Identity)&quot;" />-->
+  </Target>
+  <Target Name="HarvestEsattoAssemblies" DependsOnTargets="LocateEsattoAssemblies;ExportEsattoTlbs" Inputs="@(EsattoHeatExecution -> '%(Identity)');@(EsattoHeatExecution -> '%(WxsTransform)')" Outputs="@(EsattoHeatExecution -> '%(TargetPath)')">
+    <HeatFile File="%(EsattoHeatExecution.Identity)" OutputFile="%(TargetPath)" ToolPath="$(WixToolPath)" ComponentGroupName="%(ComponentGroup)" PreprocessorVariable="var.%(Filename).TargetDir" Transforms="%(WxsTransform)" AutogenerateGuids="true" SuppressRootDirectory="true" DirectoryRefId="INSTALLFOLDER" NoLogo="true" RunAsSeparateProcess="true" />
+  </Target>
+  <PropertyGroup>
+    <!-- the Build target calls Compile which depends on Harvest, which calls this-->
+    <HarvestDependsOn>$(HarvestDependsOn);HarvestEsattoAssemblies</HarvestDependsOn>
+  </PropertyGroup>
+</Project>

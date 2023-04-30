@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" xmlns:edp="http://esat.to/schema/2012-11-25/Deployment">
+  <Product Id="*" Name="Esatto Application Coordination" Language="1033" Version="1.0.0.0" Manufacturer="In Touch Technologies" UpgradeCode="{A16F74BC-BD5D-45F3-9A78-D4889D95EC3C}">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Platform="x86" />
+    <MajorUpgrade AllowDowngrades="yes" />
+    <MediaTemplate EmbedCab="yes" />
+    <Property Id="REINSTALLMODE" Value="amus" />
+    <PropertyRef Id="NETFRAMEWORK40FULLINSTALLROOTDIR" />
+    <PropertyRef Id="NETFRAMEWORK45"/>
+    <Condition Message='This setup requires Microsoft .NET Framework 4.5 package or greater needs to be installed for this installation to continue.'>
+      <![CDATA[Installed OR NETFRAMEWORK45]]>
+    </Condition>
+    <Icon Id="EsattoIcon.exe" SourceFile="..\assets\Esatto Logo (ICO, Green, 256x256).ico" />
+    <Property Id="ARPPRODUCTICON" Value="EsattoIcon.exe" />
+    <Feature Id="ProductFeature" Title="All Features" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+  </Product>
+  
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="CompanyFolder" Name="Esatto">
+          <Directory Id="INSTALLFOLDER" Name="Application Coordination" />
+        </Directory>
+      </Directory>
+    </Directory>
+  </Fragment>
+  
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <!-- Shared -->
+      <!-- Esatto.AppCoordination.Common.dll is installed to the GAC via Heat -->
+      <ComponentGroupRef Id="EsattoAppCoordinationCommon_ComReg" />
+      <ComponentGroupRef Id="EsattoAppCoordinationCommon_TlbReg" />
+      <Component Id="EsattoAppCoordination_esAppCoordination_evtsrc">
+        <RegistryValue Key="SOFTWARE\In Touch Technologies\Esatto\Components" Name="EsattoAppCoordination_esAppCoordination_evtsrc" Value="1" Type="integer" Root="HKLM" KeyPath="yes" />
+        <util:EventSource Log="Esatto-App" Name="esAppCoordination" EventMessageFile="[NETFRAMEWORK40FULLINSTALLROOTDIR]EventLogMessages.dll" />
+      </Component>
+      
+      <!-- Coordinator -->
+      <!-- Esatto.AppCoordination.Coordinator.exe is installed via Heat -->
+      <ComponentGroupRef Id="EsattoAppCoordinationCoordinator_ComReg" />
+      <Component Id="Esatto.AppCoordination.Coordinator.config">
+        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetPath).config" KeyPath="yes" />
+      </Component>
+
+      <!-- SystemHost -->
+      <!-- Esatto.AppCoordination.SystemHost.exe is installed via Heat -->
+      <ComponentGroupRef Id="EsattoAppCoordinationSystemHost_ComReg" />
+      <Component Id="Esatto.AppCoordination.SystemHost.config">
+        <File Source="$(var.Esatto.AppCoordination.SystemHost.TargetPath).config" KeyPath="yes" />
+      </Component>
+      
+      <!-- Demo Client -->
+      <Component Id="Esatto.AppCoordination.DemoClient">
+        <File Source="$(var.Esatto.AppCoordination.DemoClient.TargetPath)" KeyPath="yes" />
+      </Component>
+      <Component Id="Esatto.AppCoordination.DemoClient.config">
+        <File Source="$(var.Esatto.AppCoordination.DemoClient.TargetPath).config" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

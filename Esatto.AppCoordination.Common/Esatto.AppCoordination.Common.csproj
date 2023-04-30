@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Esatto.AppCoordination</RootNamespace>
+    <TargetFrameworks>net48;net7.0-windows</TargetFrameworks>
+  </PropertyGroup>
+  <Import Project="..\assets\EsattoCSCommon.targets" />
+  <ItemGroup>
+    <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
+    <PackageReference Include="System.Diagnostics.EventLog" Version="7.0.0" />
+    <PackageReference Include="Esatto.Win32.Com" Version="3.0.0" />
+  </ItemGroup>
+</Project>
