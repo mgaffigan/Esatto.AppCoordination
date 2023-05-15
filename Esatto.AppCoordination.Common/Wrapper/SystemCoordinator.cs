@@ -20,7 +20,7 @@ namespace Esatto.AppCoordination
         }
 
         public static SystemCoordinator GetCurrent() 
-            => new SystemCoordinator(ComInterop.CreateLocalServer<ICoordinator>(new Guid(IpcConstants.CoordinatorProgID)));
+            => new SystemCoordinator(ComInterop.CreateLocalServer<ICoordinator>(IpcConstants.CoordinatorProgID));
 
         public Session AmbientSession
         {
