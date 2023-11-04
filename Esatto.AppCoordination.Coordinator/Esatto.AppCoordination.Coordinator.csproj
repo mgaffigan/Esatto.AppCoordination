@@ -21,11 +21,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
     <PackageReference Include="Esatto.Win32.Com" Version="3.0.2" />
+    <PackageReference Include="Esatto.Win32.RdpDvc.Common" Version="3.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Esatto.AppCoordination.Common\Esatto.AppCoordination.Common.csproj" />
-    <Reference Include="C:\dev\source\repos\Esatto.Win32\Esatto.Win32.RdpDvc.Common\bin\Debug\net48\Esatto.Win32.RdpDvc.Common.dll" />
   </ItemGroup>
 
   <Target Name="ExportTlb" AfterTargets="CopyFilesToOutputDirectory" Inputs="$(TargetPath)" Outputs="$(OutDir)$(TargetName).tlb">
