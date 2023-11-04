@@ -18,5 +18,10 @@ jobs:
         dotnet-version: 7.0.x
     - name: Build Esatto.AppCoordination.Common
       run: dotnet pack Esatto.AppCoordination.Common -c Release -p:Version=${{github.ref_name}}
+    - name: Build setup
+      run: dotnet build Esatto.AppCoordination.Setup -c Release -p:Version=${{github.ref_name}}
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: 'Esatto.AppCoordination.Setup\bin\x64\Release\Esatto.AppCoordination.Setup.msi,Esatto.AppCoordination.Common/bin/Release/Esatto.AppCoordination.Common.${{github.ref_name}}.nupkg'
     - name: NugetPush Esatto.AppCoordination.Common
       run: dotnet nuget push -s https://www.nuget.org/api/v2/package --api-key ${{secrets.MG_NUGET_SECRET}} Esatto.AppCoordination.Common/bin/Release/Esatto.AppCoordination.Common.${{github.ref_name}}.nupkg
