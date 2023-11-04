@@ -32,6 +32,7 @@
     <PropertyGroup>
       <WindowsSDK_ExecutablePath_x64 Condition="'$(WindowsSDK_ExecutablePath_x64)' == ''">C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\x64\</WindowsSDK_ExecutablePath_x64>
       <TlbExpTool Condition="'$(TlbExpTool)' == ''">$(WindowsSDK_ExecutablePath_x64)tlbexp.exe</TlbExpTool>
+      <TlbExpTool Condition="!Exists('$(TlbExpTool)')">..\Tools\tlbexp.exe</TlbExpTool>
     </PropertyGroup>
     <Error Condition="!Exists('$(TlbExpTool)')" Text="Cannot locate tlbexp at '$(TlbExpTool)'" />
     
