@@ -1,8 +1,19 @@
 ﻿<Project Sdk="WixToolset.Sdk/4.0.0">
+  <PropertyGroup>
+    <!-- Platforms seems to prevent VS from allowing selection of a non-x64 platform -->
+    <Platforms>x64</Platforms>
+    <!-- Platform should default InstallerPlatform, but I'm tired of reading wix's msbuild scripts -->
+    <Platform>x64</Platform>
+    <InstallerPlatform>x64</InstallerPlatform>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Esatto.AppCoordination.Coordinator\Esatto.AppCoordination.Coordinator.csproj" />
     <ProjectReference Include="..\Esatto.AppCoordination.DemoClient\Esatto.AppCoordination.DemoClient.csproj">
       <SetTargetFramework>TargetFramework=net48</SetTargetFramework>
     </ProjectReference>
   </ItemGroup>
+  <!-- Paranoia -->
+  <Target Name="VerifyPlatform" Condition="'$(Platform)' != 'x64' or '$(InstallerPlatform)' != 'x64'" BeforeTargets="CoreCompile">
+    <Error Text="This project must be built for x64" />
+  </Target>
 </Project>
