@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -23,7 +25,15 @@ namespace Esatto.AppCoordination.DemoClient
         {
             base.OnStartup(e);
 
-            MainWindow = new MainWindow();
+            var host = Host.CreateDefaultBuilder()
+                .ConfigureServices(services =>
+                {
+                    services.AddSingleton<DemoClientVM>();
+                    services.AddSingleton<MainWindow>();
+                })
+                .Build();
+
+            MainWindow = host.Services.GetRequiredService<MainWindow>();
             MainWindow.Show();
         }
     }

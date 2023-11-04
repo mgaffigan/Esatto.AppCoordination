@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Esatto.AppCoordination;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,11 +26,18 @@ namespace Esatto.AppCoordination.DemoClient
             InitializeComponent();
         }
 
-        public ForeignAction ViewModel => (ForeignAction)DataContext;
+        public ForeignEntry ViewModel => (ForeignEntry)DataContext;
 
         private void btAction_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Invoke();
+            try
+            {
+                ViewModel.Invoke("test");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
     }
 }

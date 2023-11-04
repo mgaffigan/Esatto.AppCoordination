@@ -1,10 +1,30 @@
 ﻿<UserControl x:Class="Esatto.AppCoordination.DemoClient.MyEntityActionView" x:ClassModifier="internal"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Esatto.AppCoordination.DemoClient"
-             mc:Ignorable="d" d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type local:MyEntityActionVM}}"
-             Width="75" Height="23" Margin="0,0,4,0">
-    <Button x:Name="btAction" Content="{Binding Path=Name}" Click="btAction_Click" />
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:local="clr-namespace:Esatto.AppCoordination.DemoClient"
+        xmlns:ac2="clr-namespace:Esatto.AppCoordination;assembly=Esatto.AppCoordination.Common"
+        mc:Ignorable="d" d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type ac2:ForeignEntry}}"
+        Width="75" Height="23" Margin="0,0,4,0">
+    <Button x:Name="btAction" Content="{Binding Path=Value[DisplayName]}" Click="btAction_Click">
+        <Button.ToolTip>
+            <ItemsControl ItemsSource="{Binding Path=Value}" Grid.IsSharedSizeScope="True">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="5" />
+                                <ColumnDefinition Width="1*" SharedSizeGroup="Value" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Margin="10,3,5,3" Text="{Binding Path=Key}" />
+                            <TextBlock Grid.Column="2" Margin="5,3,10,3" Text="{Binding Path=Value}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Button.ToolTip>
+    </Button>
 </UserControl>

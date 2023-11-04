@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Esatto.AppCoordination.DemoClient
 {
-    class MyEntityVM : PublishedEntity
+    internal class MyEntityVM
     {
-        //public new ObservableCollection<MyEntityActionVM> Actions { get; }
-
-        public MyEntityVM(EntityIdentity identity)
-            : base(identity)
+        public MyEntityVM(PublishedEntry entry, CoordinatedApp app)
         {
-            //this.Actions = new FilteredObservableCollection<ForeignAction, MyEntityActionVM>(
-            //    base.Actions, transform: fa => new MyEntityActionVM(fa));
+            this.Entry = entry;
+            this.Commands = app.ForeignEntities.CreateProjection(CPath.Suffix(entry.Key, "command"));
         }
+
+        public PublishedEntry Entry { get; }
+        public FilteredForeignEntryCollection Commands { get; }
     }
 }

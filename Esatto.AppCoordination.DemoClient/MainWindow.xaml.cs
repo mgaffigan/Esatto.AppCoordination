@@ -20,24 +20,14 @@ namespace Esatto.AppCoordination.DemoClient
     /// </summary>
     internal partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow(DemoClientVM vm)
         {
             InitializeComponent();
 
-            this.DataContext = this.ViewModel = new DemoClientVM("Default");
+            this.DataContext = this.ViewModel = vm;
         }
 
         public DemoClientVM ViewModel { get; }
-
-        private void btGetSession_Click(object sender, RoutedEventArgs e)
-        {
-            this.tbSession.Text = ViewModel.GetSession();
-        }
-
-        private void btSetSession_Click(object sender, RoutedEventArgs e)
-        {
-            ViewModel.SetSession(this.tbSession.Text);
-        }
 
         private void btAddCommandToSelected_Click(object sender, RoutedEventArgs e)
         {
@@ -62,6 +52,18 @@ namespace Esatto.AppCoordination.DemoClient
         private void btDispose_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.Dispose();
+        }
+
+        private void btInvoke_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                MessageBox.Show(ViewModel.SelectedOtherEntity.Entity.Invoke(Guid.NewGuid().ToString()));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
     }
 }

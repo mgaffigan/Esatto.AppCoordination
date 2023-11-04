@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Esatto.Utilities;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -6,15 +8,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Esatto.AppCoordination.DemoClient
 {
     internal class DemoClientVM : NotificationObject, IDisposable
     {
-        private const string DemoClientMetadataKey = "602BEF41-CF1F-4868-A377-6CF32E8B8FD0";
-        private readonly SystemCoordinator SysCoordinator;
-        private readonly string DeploymentName;
         private readonly CoordinatedApp ThisApp;
 
         private OpenEntityVM _SelectedOtherEntity;
@@ -30,7 +30,7 @@ namespace Esatto.AppCoordination.DemoClient
             }
         }
         public bool CanAddActionToSelectedOtherEntity => SelectedOtherEntity != null;
-        public ObservableCollection<OpenEntityVM> OpenEntities { get; }
+        public IObservableCollection<OpenEntityVM> OpenEntities { get; }
 
         private MyEntityVM _SelectedMyEntity;
         public MyEntityVM SelectedMyEntity
@@ -40,7 +40,12 @@ namespace Esatto.AppCoordination.DemoClient
             {
                 _SelectedMyEntity = value;
 
-                value?.Focus();
+                if (value is not null)
+                {
+                    var props = value.Entry.Value.Clone();
+                    props["poke"] = 1 + (int)props["poke"];
+                    value.Entry.Value = props;
+                }
 
                 RaisePropertyChanged(nameof(SelectedMyEntity));
                 RaisePropertyChanged(nameof(CanRemoveSelectedEntity));
@@ -49,61 +54,27 @@ namespace Esatto.AppCoordination.DemoClient
         public bool CanRemoveSelectedEntity => SelectedMyEntity != null;
         public ObservableCollection<MyEntityVM> MyEntities { get; }
 
-        public DemoClientVM(string deploymentName)
+        public DemoClientVM(ILogger<DemoClientVM> logger)
         {
-            if (string.IsNullOrEmpty(deploymentName))
-            {
-                throw new ArgumentException("Contract assertion not met: !string.IsNullOrEmpty(deploymentName)", nameof(deploymentName));
-            }
-
-            this.DeploymentName = deploymentName;
-
-            this.OpenEntities = new ObservableCollection<OpenEntityVM>();
+            this.ThisApp = new CoordinatedApp(SynchronizationContext.Current, silentlyFail: false, logger);
+            this.OpenEntities = new ObservableCollectionProxy<ForeignEntry>(ThisApp.ForeignEntities)
+                .SelectObservable(fe => new OpenEntityVM(fe, ThisApp));
             this.MyEntities = new ObservableCollection<MyEntityVM>();
-
-            this.SysCoordinator = SystemCoordinator.GetCurrent();
-            this.entityNumber = Process.GetCurrentProcess().Id;
-            this.ThisApp = SysCoordinator.CreateAppForDeployment(deploymentName);
-            this.ThisApp.ForeignEntities.CollectionChanged += ForeignEntities_CollectionChanged;
-        }
-
-        private void ForeignEntities_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            if (e.Action == NotifyCollectionChangedAction.Add)
-            {
-                this.OpenEntities.Add(new OpenEntityVM((ForeignEntity)e.NewItems[0]));
-            }
-            else if (e.Action == NotifyCollectionChangedAction.Remove)
-            {
-                var oe = OpenEntities.Single(o => o.Entity == e.OldItems[0]);
-                OpenEntities.Remove(oe);
-            }
-            else throw new NotSupportedException();
-        }
-
-        public string GetSession()
-        {
-            return SysCoordinator.AmbientSession?.Metadata[DemoClientMetadataKey];
-        }
-
-        public void SetSession(string value)
-        {
-            SysCoordinator.AmbientSession = new SessionBuilder(DeploymentName)
-            {
-                { DemoClientMetadataKey, value }
-            };
+            this.entityNumber = Process.GetCurrentProcess().Id * 100;
         }
 
         private int entityNumber;
 
         public void AddMyEntity()
         {
-            var mev = new MyEntityVM(new EntityIdentityBuilder($"Entity {entityNumber++}")
+            var ent = ThisApp.Publish(CPath.From("Entity", $"Example {entityNumber++}"), new()
             {
-                { "entityId", Guid.NewGuid().ToString() }
+                { "DisplayName", $"Example {entityNumber}" },
+                { "example", "value" },
+                { "poke", 1 },
+                { "entityNumber", entityNumber }
             });
-            this.MyEntities.Add(mev);
-            this.ThisApp.PublishedEntities.Add(mev);
+            this.MyEntities.Add(new MyEntityVM(ent, ThisApp));
         }
 
         public void RemoveSelectedMyEntity()
@@ -115,10 +86,10 @@ namespace Esatto.AppCoordination.DemoClient
             }
 
             MyEntities.Remove(myEntity);
-            myEntity.Dispose();
+            myEntity.Entry.Dispose();
         }
 
-        private int actionid;
+        private int actionId;
         public void AddActionToSelectedOtherEntity()
         {
             var entity = SelectedOtherEntity;
@@ -127,7 +98,7 @@ namespace Esatto.AppCoordination.DemoClient
                 throw new InvalidOperationException("No entity selected");
             }
 
-            entity.AddAction($"Action {actionid++}");
+            entity.AddAction($"Action {actionId++}");
         }
 
         public void ClearAllPublishedCommands()

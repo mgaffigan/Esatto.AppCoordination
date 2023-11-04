@@ -1,16 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net48</TargetFramework>
-    <PlatformTarget>x86</PlatformTarget>
+    <TargetFrameworks>net48;net7.0-windows</TargetFrameworks>
+    <PlatformTarget Condition="'$(TargetFramework)' != 'net7.0-windows'">x86</PlatformTarget>
+    <PlatformTarget Condition="'$(TargetFramework)' == 'net7.0-windows'">x64</PlatformTarget>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <Import Project="..\assets\EsattoCSCommon.targets" />
   <ItemGroup>
-    <ApplicationDefinition Remove="App.xaml" />
-    <Page Include="App.xaml" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Esatto.AppCoordination.Common\Esatto.AppCoordination.Common.csproj" />
+    <PackageReference Include="Esatto.Utilities" Version="3.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
   </ItemGroup>
 </Project>

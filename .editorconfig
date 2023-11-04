@@ -1,0 +1,12 @@
+[*.cs]
+# CA1848: Use the LoggerMessage delegates
+dotnet_diagnostic.CA1848.severity = suggestion
+
+[*.{yaml,yml}]
+indent_style = space
+indent_size = 2
+
+[*.{md,txt}]
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = false

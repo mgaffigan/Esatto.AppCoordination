@@ -4,20 +4,21 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Esatto.AppCoordination.DemoClient"
+        xmlns:ac2="clr-namespace:Esatto.AppCoordination;assembly=Esatto.AppCoordination.Common"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type local:DemoClientVM}}"
         Title="MainWindow" Height="350" Width="525" MinHeight="350" MinWidth="525">
     <Window.Resources>
         <DataTemplate x:Key="MyEntityView" DataType="{x:Type local:MyEntityVM}">
             <StackPanel Orientation="Vertical">
-                <TextBlock Text="{Binding Path=Identity.Name}" />
-                <ItemsControl ItemsSource="{Binding Path=Actions}">
+                <TextBlock Text="{Binding Path=Entry}" />
+                <ItemsControl ItemsSource="{Binding Path=Commands}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type local:MyEntityActionVM}">
+                        <DataTemplate DataType="{x:Type ac2:ForeignEntry}">
                             <local:MyEntityActionView />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -27,10 +28,10 @@
         <DataTemplate x:Key="OtherEntityTemplate" DataType="{x:Type local:OpenEntityVM}">
             <StackPanel Orientation="Horizontal">
                 <TextBlock x:Name="lbFocused" Text="&#xe8b8;" Foreground="Red" FontFamily="Segoe MDL2 Assets" FontSize="10" Margin="0,4,6,0" Visibility="Hidden" />
-                <TextBlock Text="{Binding Path=Entity.Identity.Name}">
+                <TextBlock Text="{Binding Path=Entity}">
                     <TextBlock.ToolTip>
                         <ToolTip Grid.IsSharedSizeScope="True">
-                            <ItemsControl ItemsSource="{Binding Path=Entity.Identity}">
+                            <ItemsControl ItemsSource="{Binding Path=Entity.Value}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Grid>
@@ -67,13 +68,6 @@
             <RowDefinition Height="111"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <GroupBox x:Name="gbSession" Header="Ambient Session" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="90" Width="275" Grid.ColumnSpan="3">
-            <Grid>
-                <TextBox x:Name="tbSession" Margin="10,10,10,0" Height="23" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
-                <Button x:Name="btSetSession" Content="Set" HorizontalAlignment="Left" Margin="178,38,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="btSetSession_Click" />
-                <Button x:Name="btGetSession" Content="Get" HorizontalAlignment="Left" Margin="98,38,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="btGetSession_Click" />
-            </Grid>
-        </GroupBox>
         <GroupBox x:Name="gbMyEntities" Header="This application's entities" Margin="10,0,10,10" Grid.Row="1">
             <Grid >
                 <Grid.RowDefinitions>
@@ -82,16 +76,17 @@
                 </Grid.RowDefinitions>
                 <Button x:Name="btOpenNewEntity" Content="Open New" HorizontalAlignment="Left" Margin="10,5,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Height="23" Click="btOpenNewEntity_Click"/>
                 <Button x:Name="btCloseSelectedEntity" Content="Close" HorizontalAlignment="Left" Margin="90,5,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Height="23" Click="btCloseSelectedEntity_Click" IsEnabled="{Binding CanRemoveSelectedEntity, Mode=OneWay}"/>
-                <ListBox x:Name="lbThisAppEntities" Margin="10,10,10,0" ItemsSource="{Binding MyEntities}" SelectedItem="{Binding SelectedMyEntity}" ItemTemplate="{DynamicResource MyEntityView}"/>
+                <ListBox x:Name="lbThisAppEntities" Margin="10,10,10,0" ItemsSource="{Binding Path=MyEntities}" SelectedItem="{Binding SelectedMyEntity}" ItemTemplate="{DynamicResource MyEntityView}"/>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="gbOtherApps" Header="Other applications' entities" Margin="10,0,10,10" Grid.Row="1" Grid.Column="2">
-            <Grid >
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="137*"/>
                     <RowDefinition Height="38"/>
                 </Grid.RowDefinitions>
                 <Button x:Name="btAddCommandToSelected" Content="Add Cmd" HorizontalAlignment="Left" Margin="10,5,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Height="23" Click="btAddCommandToSelected_Click" IsEnabled="{Binding CanAddActionToSelectedOtherEntity, Mode=OneWay}"/>
+                <Button x:Name="btInvokeSelected" Content="Invoke" HorizontalAlignment="Left" Margin="170,5,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Height="23" Click="btInvoke_Click" IsEnabled="{Binding CanAddActionToSelectedOtherEntity, Mode=OneWay}"/>
                 <ListBox x:Name="lbOtherAppsEntities" Margin="10,10,10,0" ItemsSource="{Binding OpenEntities}" SelectedItem="{Binding SelectedOtherEntity}" ItemTemplate="{DynamicResource OtherEntityTemplate}"/>
                 <Button x:Name="btClearAllPublishedCommands" Content="Clear all" HorizontalAlignment="Left" Margin="90,5,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Height="23" Click="btClearAllPublishedCommands_Click"/>
             </Grid>
