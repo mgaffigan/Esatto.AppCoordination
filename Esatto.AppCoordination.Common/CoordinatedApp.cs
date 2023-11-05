@@ -1,6 +1,7 @@
 ﻿using Esatto.AppCoordination.IPC;
 using Esatto.Win32.Com;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections;
@@ -17,8 +18,9 @@ public class CoordinatedApp : IDisposable
     private PublishedEntryCollection PublishedEntries { get; }
     public ForeignEntryCollection ForeignEntities { get; }
 
-    public CoordinatedApp(SynchronizationContext? syncCtx, bool silentlyFail, ILogger logger)
+    public CoordinatedApp(SynchronizationContext? syncCtx, bool silentlyFail, ILogger? logger)
     {
+        logger ??= NullLogger.Instance;
         this.SyncCtx = syncCtx ?? new SynchronizationContext();
         this.Logger = logger;
         this.SilentlyFail = silentlyFail;
@@ -62,6 +64,11 @@ public class CoordinatedApp : IDisposable
         return PublishedEntries.Publish(key, value, action);
     }
 
+    public SingleInstanceApp GetSingleInstanceApp(string key, Guid? clsid = null)
+    {
+        return new SingleInstanceApp(this, Logger, key, clsid, SyncCtx);
+    }
+
     internal string Invoke(CAddress address, string payload)
     {
         try
@@ -84,6 +91,7 @@ public class CoordinatedApp : IDisposable
     private class CoordinatedAppThunk : IConnectionCallback
     {
         private CoordinatedApp Parent;
+        private bool isInitialized;
 
         public CoordinatedAppThunk(CoordinatedApp parent)
         {
@@ -93,17 +101,26 @@ public class CoordinatedApp : IDisposable
         public void Inform(string data)
         {
             var es = EntrySet.FromJson(data);
-            Parent.SyncCtx.Post(_ =>
+            if (!isInitialized)
             {
-                try
+                // The first update must happen synchronously since the syncCtx might not be pumping yet
+                isInitialized = true;
+                Parent.ForeignEntities.Update(es);
+            }
+            else
+            {
+                Parent.SyncCtx.Post(_ =>
                 {
-                    Parent.ForeignEntities.Update(es);
-                }
-                catch (Exception ex)
-                {
-                    Parent.Logger.LogWarning(ex, "Exception updating ForeignEntryCollection");
-                }
-            }, null);
+                    try
+                    {
+                        Parent.ForeignEntities.Update(es);
+                    }
+                    catch (Exception ex)
+                    {
+                        Parent.Logger.LogWarning(ex, "Exception updating ForeignEntryCollection");
+                    }
+                }, null);
+            }
         }
 
         public string Invoke(string path, string key, string payload, out bool failed)

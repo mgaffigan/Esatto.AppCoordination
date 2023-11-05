@@ -35,6 +35,18 @@ public interface IReadOnlyEntryValue : IReadOnlyDictionary<string, object?>
     EntryValue Clone();
 }
 
+public static class IReadOnlyEntryValueExtensions
+{
+    public static T? GetValueOrDefault<T>(this IReadOnlyEntryValue @this, string key, T? @default = default)
+    {
+        if (@this.TryGetValue(key, out var oValue) && oValue is T tValue)
+        {
+            return tValue;
+        }
+        return @default;
+    }
+}
+
 public class EntryValue : IDictionary<string, object?>, IReadOnlyEntryValue
 {
     public string JsonValue

@@ -25,7 +25,7 @@ internal class Coordinator : ICoordinator
     {
         if (callback is null) throw new ArgumentNullException(nameof(callback));
 
-        var (con, thunk) = ClientConnection.Create(this, callback, Logger);
+        var (con, thunk) = ClientConnection.Create(this, callback, Logger, Information);
         if (!Connections.TryAdd(con.ID, con))
         {
             throw new InvalidOperationException("Duplicate connection ID");
@@ -33,7 +33,6 @@ internal class Coordinator : ICoordinator
 
         // Don't need to call EntriesChanged on other threads since no
         // entries are initially published
-        con.EntriesChanged(Information);
         return thunk;
     }
 
@@ -62,8 +61,17 @@ internal class Coordinator : ICoordinator
 
     internal string Invoke(string path, string key, string payload, out bool failed)
     {
-        var (first, rest) = CPath.PopFirst(path);
-        return Connections[first].Invoke(rest, key, payload, out failed);
+        try
+        {
+            var (first, rest) = CPath.PopFirst(path);
+            return Connections[first].Invoke(rest, key, payload, out failed);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Dispatching invoke to {Path}:{Key} failed", path, key);
+            failed = true;
+            return InvokeFaultException.ToJson(ex);
+        }
     }
 
     // noexcept, called on threadpool

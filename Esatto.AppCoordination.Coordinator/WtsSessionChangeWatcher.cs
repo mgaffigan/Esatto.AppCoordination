@@ -5,6 +5,7 @@ using Esatto.Win32.RdpDvc.TSVirtualChannels;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.CodeDom;
+using System.ComponentModel;
 using static Esatto.AppCoordination.Coordinator.RdpDataFormatter;
 
 namespace Esatto.AppCoordination.Coordinator;
@@ -63,6 +64,10 @@ internal class WtsSessionChangeWatcher : IHostedService
                 channel.Dispose();
                 throw;
             }
+        }
+        catch (Win32Exception wex) when (wex.HResult == -2147467259 /* E_FAIL */)
+        {
+            Logger.LogInformation("DVC channel not available");
         }
         catch (ChannelNotAvailableException)
         {

@@ -26,9 +26,11 @@ internal class ClientConnection : IDisposable
         this.Logger = logger;
     }
 
-    public static (ClientConnection connection, IConnection thunk) Create(Coordinator parent, IConnectionCallback callback, ILogger logger)
+    public static (ClientConnection connection, IConnection thunk) Create(Coordinator parent, IConnectionCallback callback, ILogger logger, int information)
     {
         var con = new ClientConnection(parent, callback, logger);
+        con.EntriesChangedInternal(information);
+
         // !!! nothing but the CCW may keep a reference to ConnectionThunk !!!
         return (con, new ConnectionThunk(con));
     }
@@ -77,7 +79,7 @@ internal class ClientConnection : IDisposable
         {
             try
             {
-                Callback.Inform(Parent.GetViewFor(this, information).ToJson());
+                EntriesChangedInternal(information);
             }
             catch (InformationOutOfDateException)
             {
@@ -94,6 +96,11 @@ internal class ClientConnection : IDisposable
                 Logger.LogError(ex, "Error publishing entries to {ID}", ID);
             }
         }, null);
+    }
+
+    private void EntriesChangedInternal(int information)
+    {
+        Callback.Inform(Parent.GetViewFor(this, information).ToJson());
     }
 
     private void Publish(EntrySet data)

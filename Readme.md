@@ -58,13 +58,6 @@ Communication:
 
 ![Communication dataflow diagram showing multiple remote desktop connections](Assets/Communication.png)
 
-## IPC
-
-Any entry can be "Invoked" by passing a request payload and receiving a response payload.  Failures are
-propagated back to the caller as exceptions.  The format of the payload is not defined.  Operations
-may not take more than 10 seconds to complete.  Payload may not exceed 1 MB.  If longer operations are
-required, register a "completion" entry and asynchronously "return" the result as a new invoke.
-
 ## Usage
 To build an application which uses `Esatto.AppCoordination`, add a reference to `Esatto.AppCoordination.Common`:
 
@@ -105,13 +98,6 @@ entry1.Value = new EntryValue("{ \"poke\": 4 }");
 
 // un-publish the entry by disposing it
 entry1.Dispose();
-
-// Publish an invokable entry as "/Example/Command1/"
-using var entry2 = app.Publish(CPath.From("Example", "Command1"), new(), payload => 
-{
-    Console.WriteLine($"Received payload: {payload}");
-    return "Ok";
-});
 ```
 
 Entries from other applications can be accessed via `CoordinatedApp.ForeignEntities`:
@@ -135,6 +121,23 @@ using var obs2 = app.ForeignEntities.CreateProjection(key => key.StartsWith(CPat
 obs2.CollectionChanged += (sender, e) => logger.LogInformation("Collection changed: {Change}", e);
 ```
 
+## IPC
+Any entry can be "Invoked" by passing a request payload and receiving a response payload.  Failures are
+propagated back to the caller as exceptions.  The format of the payload is not defined.  Operations
+may not take more than 10 seconds to complete.  Payload may not exceed 1 MB.  If longer operations are
+required, register a "completion" entry and asynchronously "return" the result as a new invoke.
+
+A callback may be registered in the call to `Publish`:
+
+```CSharp
+// Publish an invokable entry as "/Example/Command1/"
+using var entry2 = app.Publish(CPath.From("Example", "Command1"), new(), payload => 
+{
+    Console.WriteLine($"Received payload: {payload}");
+    return "Ok";
+});
+```
+
 Entries can be invoked via `ForeignEntry.Invoke`:
 ```CSharp
 var entry = app.ForeignEntities.FirstOrDefault(k => k.Key == "/Example/Command1/")
@@ -142,8 +145,49 @@ var entry = app.ForeignEntities.FirstOrDefault(k => k.Key == "/Example/Command1/
 var result = entry1.Invoke("Hello World");
 ```
 
+Exceptions thrown by the registered delegate are passed back to the caller as `InvokeFaultException`.
+Arbitrary data may be passed as a failure by throwing `new InvokeFaultException() { RawPayload = json }`.
+The error json should include a `Message` property with a human-readable error message.
+
+## Static Entries
+Applications may register "static entries" in the windows registry which are always published.  Typically,
+these entries are used for file-association style activation of well-known actions.
+
+Static entries are registered by the setup application of the providing application under 
+`HKEY_LOCAL_MACHINE\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries`
+with a key containing an unique ID. The unique ID is not used or exposed.
+
+```reg
+[HKEY_LOCAL_MACHINE\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\SomeUniqueId1234]
+@="/Example/Entry/Key/"
+"DisplayName"="Example Entry"
+"Description"="This is an example entry"
+"Priority"=dword:00000001
+```
+
+produces
+
+```JSON
+{ "/Static/1/:/Example/Entry/Key/": { "DisplayName": "Example Entry", "Description": "This is an example entry", "Priority": 1 } }
+```
+
+If a static entry registers a `CLSID` value, the coordinator will `CoCreateInstance` the CLSID and cast
+to `IStaticEntryHandler` when the entry is invoked.  An application may implement `IStaticEntryHandler`
+and register a unique `CLSID` so it can be invoked even when closed.
+
+Example entry and COM registration:
+
+```reg
+[HKEY_LOCAL_MACHINE\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\SomeUniqueId1234]
+@="/Example/Entry/Key/"
+"CLSID"="{003425B1-0503-4302-9F94-62250A6BE68A}"
+
+[HKEY_CLASSES_ROOT\CLSID\{003425B1-0503-4302-9F94-62250A6BE68A}\LocalServer32]
+@="C:\Program Files\foo\bar\baz.exe"
+```
+
 ## Tooling
-A demo client is avaialble to view the database. It is installed by default on each coordinated system.
+A demo client is available to view the database. It is installed by default on each coordinated system.
 It can be launched from `C:\Program Files\Esatto\AppCoord2\Esatto.AppCoordination.DemoClient.exe`.
 
 ## Redistribution

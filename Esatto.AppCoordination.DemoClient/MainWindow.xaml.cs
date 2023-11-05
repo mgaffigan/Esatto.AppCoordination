@@ -58,7 +58,7 @@ namespace Esatto.AppCoordination.DemoClient
         {
             try
             {
-                MessageBox.Show(ViewModel.SelectedOtherEntity.Entity.Invoke(Guid.NewGuid().ToString()));
+                MessageBox.Show(ViewModel.SelectedOtherEntity.Entity.Invoke(@"[""C:\\dev\\gitroot\\Esatto.AppCoord\\Esatto.AppCoordination.DemoCoordinatedNotepad\\bin\\Debug\\net7.0-windows\\example2.txt""]"));
             }
             catch (Exception ex)
             {

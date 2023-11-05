@@ -15,6 +15,14 @@ internal class Program
                 services.AddSingleton<Coordinator>();
                 services.AddSingleton<MstscPlugin>();
                 services.AddHostedService<WtsSessionChangeWatcher>();
+
+                // if we have statics, register them
+                var staticConfig = StaticEntriesConfiguration.FromRegistry();
+                if (staticConfig.Entries.Count > 0)
+                {
+                    services.AddSingleton(staticConfig);
+                    services.AddHostedService<StaticEntriesPublisher>();
+                }
             })
             .Build();
 

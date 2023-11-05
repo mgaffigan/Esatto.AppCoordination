@@ -68,6 +68,15 @@
         <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{30D76095-78D6-4855-AC96-30FC18E9B0F7}\ProxyStubClsid32" Value="{00020424-0000-0000-C000-000000000046}" Type="string" />
         <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{30D76095-78D6-4855-AC96-30FC18E9B0F7}\TypeLib" Value="{540A24BD-82EC-41B8-8905-33A542EC5021}" Type="string" />
         <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{30D76095-78D6-4855-AC96-30FC18E9B0F7}\TypeLib" Name="Version" Value="4.0" Type="string" />
+        <!-- IStaticEntryHandler -->
+        <RegistryValue Root="HKCR" Key="Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}" Value="IStaticEntryHandler" Type="string" />
+        <RegistryValue Root="HKCR" Key="Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}\ProxyStubClsid32" Value="{00020424-0000-0000-C000-000000000046}" Type="string" />
+        <RegistryValue Root="HKCR" Key="Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}\TypeLib" Value="{540A24BD-82EC-41B8-8905-33A542EC5021}" Type="string" />
+        <RegistryValue Root="HKCR" Key="Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}\TypeLib" Name="Version" Value="4.0" Type="string" />
+        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}" Value="IStaticEntryHandler" Type="string" />
+        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}\ProxyStubClsid32" Value="{00020424-0000-0000-C000-000000000046}" Type="string" />
+        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}\TypeLib" Value="{540A24BD-82EC-41B8-8905-33A542EC5021}" Type="string" />
+        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}\TypeLib" Name="Version" Value="4.0" Type="string" />
       </Component>
       <Component>
         <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Esatto.Utilities.dll" KeyPath="yes" />

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Esatto.AppCoordination.DemoCoordinatedNotepad": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\dev\\gitroot\\Esatto.AppCoord\\Esatto.AppCoordination.DemoCoordinatedNotepad\\bin\\Debug\\net7.0-windows\\example.txt\""
+    }
+  }
+}

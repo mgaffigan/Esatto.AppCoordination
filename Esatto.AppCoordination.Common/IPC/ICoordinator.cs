@@ -65,6 +65,13 @@ public interface IConnectionCallback
     string Invoke(string path, string key, string payload, out bool failed);
 }
 
+[ComVisible(true), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+[Guid("6AB39F0A-9D96-4271-8A9A-ADD071F6743D")]
+public interface IStaticEntryHandler
+{
+    string Invoke(string path, string key, string payload, out bool failed);
+}
+
 #nullable disable
 
 public class EntrySet
