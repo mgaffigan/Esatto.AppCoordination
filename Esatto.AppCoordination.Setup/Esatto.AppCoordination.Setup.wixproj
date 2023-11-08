@@ -11,6 +11,9 @@
     <ProjectReference Include="..\Esatto.AppCoordination.DemoClient\Esatto.AppCoordination.DemoClient.csproj">
       <SetTargetFramework>TargetFramework=net48</SetTargetFramework>
     </ProjectReference>
+    <ProjectReference Include="..\Esatto.AppCoordination.Teleport\Esatto.AppCoordination.Teleport.csproj">
+      <SetTargetFramework>TargetFramework=net48</SetTargetFramework>
+    </ProjectReference>
   </ItemGroup>
   <!-- Paranoia -->
   <Target Name="VerifyPlatform" Condition="'$(Platform)' != 'x64' or '$(InstallerPlatform)' != 'x64'" BeforeTargets="CoreCompile">

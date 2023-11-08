@@ -6,10 +6,12 @@
     <MediaTemplate EmbedCab="yes" />
     <Icon Id="EsattoIcon.exe" SourceFile="..\Assets\EsattoModule32.ico" />
     <Property Id="ARPPRODUCTICON" Value="EsattoIcon.exe" />
+    
     <Feature Id="ProductFeature" Title="All Features" Level="1">
       <ComponentGroupRef Id="Coordinator" />
       <ComponentGroupRef Id="DemoClient" />
       <ComponentGroupRef Id="MstscPlugin" />
+      <ComponentGroupRef Id="Teleport" />
     </Feature>
 
     <StandardDirectory Id="ProgramFiles6432Folder">
@@ -203,6 +205,40 @@
       </Component>
       <Component>
         <File Source="$(var.Esatto.AppCoordination.DemoClient.TargetPath).config" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="Teleport" Directory="INSTALLFOLDER">
+      <Component>
+        <File Id="TELEPORTEXE" Source="$(var.Esatto.AppCoordination.Teleport.TargetPath)" KeyPath="yes" />
+
+        <!-- Classes -->
+        <RegistryValue Root="HKCR" Key="CLSID\{BDC952ED-B54B-4E65-B652-5DBE197B8ABB}\LocalServer32" Value="[#TELEPORTEXE]" Type="string" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport" Value="/Teleport/Target/" Type="string" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport"
+                       Name="CLSID" Value="{BDC952ED-B54B-4E65-B652-5DBE197B8ABB}" Type="string" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\RegisteredApplications" Name="Esatto.AppCoordination.Teleport"
+                       Value="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities" Type="string" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities"
+                       Name="ApplicationName" Value="Teleport" Type="string" />
+      </Component>
+      <Component>
+        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)TeleportConfig.psm1" KeyPath="yes" />
+      </Component>
+      <Component>
+        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)TeleportConfig.psd1" KeyPath="yes" />
+      </Component>
+      <Component>
+        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetPath).config" KeyPath="yes" />
+      </Component>
+      <Component>
+        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)Esatto.Win32.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component>
+        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)Esatto.Win32.CommonControls.dll" KeyPath="yes" />
+      </Component>
+      <Component>
+        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)Esatto.Win32.Registry.dll" KeyPath="yes" />
       </Component>
     </ComponentGroup>
 

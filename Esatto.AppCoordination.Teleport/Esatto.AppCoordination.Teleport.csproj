@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <Import Project="..\assets\EsattoCSCommon.targets" />
+  <ItemGroup>
+    <None Remove="TeleportConfig.psd1" />
+    <None Remove="TeleportConfig.psm1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Not supported on net48 -->
+    <Using Remove="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="TeleportConfig.psd1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TeleportConfig.psm1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Esatto.Utilities" />
+    <PackageReference Include="Esatto.Win32.Common" />
+    <PackageReference Include="Esatto.Win32.CommonControls" />
+    <PackageReference Include="Esatto.Win32.Registry" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Esatto.AppCoordination.Common\Esatto.AppCoordination.Common.csproj" />
+  </ItemGroup>
+
+</Project>
