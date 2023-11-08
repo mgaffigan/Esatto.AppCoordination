@@ -9,18 +9,37 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <PropertyGroup>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <LangVersion>latest</LangVersion>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)public.snk</AssemblyOriginatorKeyFile>
+    <ApplicationIcon>$(MSBuildThisFileDirectory)EsattoModule32.ico</ApplicationIcon>
     <Version>4.0.0</Version>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)public.snk" Visible="false">
       <Link>public.snk</Link>
     </None>
+    <Resource Include="$(MSBuildThisFileDirectory)EsattoModule32.ico" Visible="false">
+      <Link>EsattoModule32.ico</Link>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="Esatto.Utilities" Version="3.0.3" />
+    <PackageVersion Include="Esatto.Win32.Com" Version="3.0.4" />
+    <PackageVersion Include="Esatto.Win32.Common" Version="3.0.3" />
+    <PackageVersion Include="Esatto.Win32.CommonControls" Version="3.0.5" />
+    <PackageVersion Include="Esatto.Win32.Registry" Version="3.0.4" />
+    <PackageVersion Include="Esatto.Win32.RdpDvc.Common" Version="3.0.3" />
+    <PackageVersion Include="System.Text.Json" Version="7.0.3" />
   </ItemGroup>
 </Project>

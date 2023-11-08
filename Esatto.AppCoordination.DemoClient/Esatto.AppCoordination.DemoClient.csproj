@@ -9,7 +9,7 @@
   <Import Project="..\assets\EsattoCSCommon.targets" />
   <ItemGroup>
     <ProjectReference Include="..\Esatto.AppCoordination.Common\Esatto.AppCoordination.Common.csproj" />
-    <PackageReference Include="Esatto.Utilities" Version="3.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+    <PackageReference Include="Esatto.Utilities" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
   </ItemGroup>
 </Project>
