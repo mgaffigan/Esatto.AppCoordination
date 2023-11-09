@@ -1,4 +1,12 @@
-﻿function Refresh-WindowsShell {
+﻿function CreateOrGetItem($path) {
+	try {
+		get-item $path
+	} catch {
+		new-item $path
+	}
+}
+
+function Refresh-WindowsShell {
 	 $code = @'
 [System.Runtime.InteropServices.DllImport("shell32.dll", CharSet = CharSet.Unicode)]
 private static extern void SHChangeNotify(int eventId, int flags, IntPtr item1, IntPtr item2);
@@ -43,12 +51,12 @@ function Add-TeleportProtocol {
 
 	$invokeCommand = "`"$TeleportPath`" url `"%1`""
 	$progid = "Esatto.AppCoordination.Teleport.$scheme";
-	mkdir "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities\UrlAssociations" -Force `
+	CreateOrGetItem "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities\UrlAssociations" `
 		| Set-ItemProperty -Name $scheme -Value $progid;
 		
-	mkdir "hklm:\SOFTWARE\Classes\$progid" -Force `
+	CreateOrGetItem "hklm:\SOFTWARE\Classes\$progid" `
 		| Set-ItemProperty -Name '(Default)' -Value "Esatto Teleport $scheme Handler";
-	mkdir "hklm:\SOFTWARE\Classes\$progid\shell\open\command" -Force `
+	CreateOrGetItem "hklm:\SOFTWARE\Classes\$progid\shell\open\command" `
 		| Set-ItemProperty -Name '(Default)' -Value $invokeCommand;
 }
 
@@ -72,7 +80,7 @@ function Remove-TeleportProtocol {
 	}
 
 	$progid = "Esatto.AppCoordination.Teleport.$scheme";
-	mkdir "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities\UrlAssociations" -Force `
+	CreateOrGetItem "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities\UrlAssociations" `
 		| Remove-ItemProperty -Name $scheme;
 		
 	Remove-Item -Path "hklm:\SOFTWARE\Classes\$progid" -Recurse -Force;
@@ -108,12 +116,12 @@ function Add-TeleportFileType {
 
 	$invokeCommand = "`"$TeleportPath`" file `"%1`""
 	$progid = "Esatto.AppCoordination.Teleport.$extension";
-	mkdir "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities\FileAssociations" -Force `
-		| Set-ItemProperty -Name $extension -Value $progid;
+	CreateOrGetItem "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities\FileAssociations" `
+		| Set-ItemProperty -Name ".$extension" -Value $progid;
 		
-	mkdir "hklm:\SOFTWARE\Classes\$progid" -Force `
+	CreateOrGetItem "hklm:\SOFTWARE\Classes\$progid" `
 		| Set-ItemProperty -Name '(Default)' -Value "Esatto Teleport $extension Handler";
-	mkdir "hklm:\SOFTWARE\Classes\$progid\shell\open\command" -Force `
+	CreateOrGetItem "hklm:\SOFTWARE\Classes\$progid\shell\open\command" `
 		| Set-ItemProperty -Name '(Default)' -Value $invokeCommand;
 
 
@@ -139,8 +147,8 @@ function Remove-TeleportFileType {
 	}
 
 	$progid = "Esatto.AppCoordination.Teleport.$extension";
-	mkdir "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities\UrlAssociations" -Force `
-		| Remove-ItemProperty -Name $extension;
+	CreateOrGetItem "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities\UrlAssociations" `
+		| Remove-ItemProperty -Name ".$extension";
 		
 	Remove-Item -Path "hklm:\SOFTWARE\Classes\$progid" -Recurse -Force;
 }
@@ -173,7 +181,7 @@ function Add-TeleportAdvertisement {
 		throw "Registration must start with . or end with :";
 	}
 
-	mkdir "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport" -Force `
+	CreateOrGetItem "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport" `
 		| Set-ItemProperty -Name $registration -Value $priority;
 }
 
@@ -196,6 +204,6 @@ function Remove-TeleportAdvertisement {
 		throw "Registration must start with . or end with :";
 	}
 	
-	mkdir "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport" -Force `
+	CreateOrGetItem "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport" `
 		| Remove-ItemProperty -Name $registration;
 }
