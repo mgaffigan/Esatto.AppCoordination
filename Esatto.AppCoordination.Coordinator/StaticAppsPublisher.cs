@@ -88,13 +88,12 @@ public class StaticEntriesConfiguration
 
     public static StaticEntriesConfiguration FromRegistry()
     {
-        if (IntPtr.Size != 8) throw new InvalidOperationException("Process should be 64-bit");
-
         var config = new StaticEntriesConfiguration();
 
         // Add 64-bit apps
         const string path = @"SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries";
-        using (var prog64 = Registry.LocalMachine.OpenSubKey(path, writable: false))
+        using (var hklm64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
+        using (var prog64 = hklm64.OpenSubKey(path, writable: false))
         {
             LoadFromKey(prog64, config);
         }

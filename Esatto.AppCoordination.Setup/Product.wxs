@@ -25,8 +25,12 @@
         <File Id="COORDEXE" Source="$(var.Esatto.AppCoordination.Coordinator.TargetPath)" KeyPath="yes" />
         
         <!-- Classes -->
-        <RegistryValue Root="HKCR" Key="CLSID\{281BB6F7-B2A9-40D7-9F02-8856E3EDC505}\LocalServer32" Value="[#COORDEXE]" Type="string" />
+        <!-- Coordinator -->
         <RegistryValue Root="HKCR" Key="CLSID\{13853D88-306E-452E-89B1-B655BA3E82D0}\LocalServer32" Value="[#COORDEXE]" Type="string" />
+        <RegistryValue Root="HKCR" Key="WOW6432Node\CLSID\{13853D88-306E-452E-89B1-B655BA3E82D0}\LocalServer32" Value="[#COORDEXE]" Type="string" />
+        <!-- WTS plugin -->
+        <RegistryValue Root="HKCR" Key="CLSID\{281BB6F7-B2A9-40D7-9F02-8856E3EDC505}\LocalServer32" Value="[#COORDEXE]" Type="string" />
+        <RegistryValue Root="HKCR" Key="WOW6432Node\CLSID\{281BB6F7-B2A9-40D7-9F02-8856E3EDC505}\LocalServer32" Value="[#COORDEXE]" Type="string" />
       </Component>
       <Component>
         <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetPath).config" KeyPath="yes" />
