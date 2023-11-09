@@ -19,4 +19,7 @@
   <Target Name="VerifyPlatform" Condition="'$(Platform)' != 'x64' or '$(InstallerPlatform)' != 'x64'" BeforeTargets="CoreCompile">
     <Error Text="This project must be built for x64" />
   </Target>
+  
+  <!-- Signing command -->
+  <!-- signtool sign /a /v /fd SHA256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /td SHA256 /sha1 49b27c9f8ca411c5eeb8c834a36d5a7ded9f9b02 Esatto.AppCoordination.Setup.msi -->
 </Project>
