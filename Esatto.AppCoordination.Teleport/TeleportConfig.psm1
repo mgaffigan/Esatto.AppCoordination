@@ -120,11 +120,9 @@ function Add-TeleportFileType {
 		| Set-ItemProperty -Name ".$extension" -Value $progid;
 		
 	CreateOrGetItem "hklm:\SOFTWARE\Classes\$progid" `
-		| Set-ItemProperty -Name '(Default)' -Value "Esatto Teleport $extension Handler";
+		| Set-ItemProperty -Name '(Default)' -Value "$extension (Esatto Teleport)";
 	CreateOrGetItem "hklm:\SOFTWARE\Classes\$progid\shell\open\command" `
 		| Set-ItemProperty -Name '(Default)' -Value $invokeCommand;
-
-
 }
 
 <#

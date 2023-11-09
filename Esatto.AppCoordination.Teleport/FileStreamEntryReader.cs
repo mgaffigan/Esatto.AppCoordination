@@ -12,9 +12,9 @@ class FileStreamEntryReader : Stream
     public FileStreamEntryReader(ForeignEntry prov)
     {
         this.Provider = prov;
-        this.MaxReadSize = (int)(prov.Value["MaxReadSize"]
+        this.MaxReadSize = (int)(long)(prov.Value["MaxReadSize"]
             ?? throw new ArgumentOutOfRangeException(nameof(prov), "No MaxReadSize specified"));
-        this._Length = (int)(prov.Value["Length"]
+        this._Length = (int)(long)(prov.Value["Length"]
             ?? throw new ArgumentOutOfRangeException(nameof(prov), "No Length specified"));
     }
 

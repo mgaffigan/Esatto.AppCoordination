@@ -85,7 +85,7 @@ public sealed class TeleportSettings : RegistrySettings
         "If no read occurs within this interval, the file will be closed.")]
     public TimeSpan MaxReadInterval
     {
-        get => GetTimeSpan(nameof(MaxReadInterval), TimeSpan.FromMinutes(60));
+        get => GetTimeSpan(nameof(MaxReadInterval), TimeSpan.FromMinutes(1));
         set => SetTimeSpan(nameof(MaxReadInterval), value);
     }
 

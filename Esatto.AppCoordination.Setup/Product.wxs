@@ -217,10 +217,17 @@
         <File Id="TELEPORTEXE" Source="$(var.Esatto.AppCoordination.Teleport.TargetPath)" KeyPath="yes" />
 
         <!-- Classes -->
+        <!-- Teleport Static Entry-->
         <RegistryValue Root="HKCR" Key="CLSID\{BDC952ED-B54B-4E65-B652-5DBE197B8ABB}\LocalServer32" Value="[#TELEPORTEXE]" Type="string" />
+        <RegistryValue Root="HKCR" Key="WOW6432Node\CLSID\{BDC952ED-B54B-4E65-B652-5DBE197B8ABB}\LocalServer32" Value="[#TELEPORTEXE]" Type="string" />
+        
+        <!-- Static Entry Registration-->
         <RegistryValue Root="HKLM" Key="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport" Value="/Teleport/Target/" Type="string" />
         <RegistryValue Root="HKLM" Key="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport"
                        Name="CLSID" Value="{BDC952ED-B54B-4E65-B652-5DBE197B8ABB}" Type="string" />
+        
+        <!-- File type associations -->
+        <RegistryValue Root="HKCR" Key="Applications\Esatto.AppCoordination.Teleport.exe" Name="FriendlyAppName" Value="Teleport" Type="string" />
         <RegistryValue Root="HKLM" Key="SOFTWARE\RegisteredApplications" Name="Esatto.AppCoordination.Teleport"
                        Value="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities" Type="string" />
         <RegistryValue Root="HKLM" Key="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities"

@@ -14,12 +14,12 @@ class FileStreamProvider : IDisposable
     public FileStreamProvider(CoordinatedApp app, UniqueDisposable<FileStream> fileStream, long length)
     {
         this.MaxReadSize = TeleportSettings.Instance.MaxMemoryFileSize;
+        this.Length = length;
         this.StreamEntity = app.Publish(StreamKey, new()
         {
             { "Length", Length },
             { "MaxReadSize", MaxReadSize }
         }, Read);
-        this.Length = length;
         this.Stream = fileStream.Take();
     }
 
