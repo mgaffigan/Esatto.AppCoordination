@@ -18,8 +18,8 @@ internal sealed class WtsServerConnectionProxy : IConnectionCallback, IDisposabl
     public WtsServerConnectionProxy(ILogger logger, ICoordinator coordinator, IAsyncDvcChannel channel)
     {
         this.Logger = logger;
-        this.Connection = coordinator.Connect(this);
         this.Channel = channel;
+        this.Connection = coordinator.Connect(this);
 
         ReadAsync();
     }
@@ -143,8 +143,14 @@ internal sealed class WtsServerConnectionProxy : IConnectionCallback, IDisposabl
         }
     }
 
-    void IConnectionCallback.Inform(string sData)
+    async void IConnectionCallback.Inform(string sData)
     {
+        if (Connection is null)
+        {
+            // Wait for the connection to be established - writes get lost?
+            await Task.Delay(500).ConfigureAwait(false);
+        }
+
         SendMessage(CreateInformRequest(sData));
     }
 
