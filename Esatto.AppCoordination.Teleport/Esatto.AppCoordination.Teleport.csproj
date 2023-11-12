@@ -34,6 +34,7 @@
     <PackageReference Include="Esatto.Win32.Common" />
     <PackageReference Include="Esatto.Win32.CommonControls" />
     <PackageReference Include="Esatto.Win32.Registry" />
+    <PackageReference Include="Esatto.Win32.Registry.AdmxExporter" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>

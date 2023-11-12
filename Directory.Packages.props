@@ -8,12 +8,13 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="Esatto.Utilities" Version="3.0.3" />
-    <PackageVersion Include="Esatto.Win32.Com" Version="3.0.4" />
-    <PackageVersion Include="Esatto.Win32.Common" Version="3.0.3" />
-    <PackageVersion Include="Esatto.Win32.CommonControls" Version="3.0.5" />
-    <PackageVersion Include="Esatto.Win32.Registry" Version="3.0.4" />
-    <PackageVersion Include="Esatto.Win32.RdpDvc.Common" Version="3.0.3" />
+    <PackageVersion Include="Esatto.Utilities" Version="3.0.6" />
+    <PackageVersion Include="Esatto.Win32.Com" Version="3.0.6" />
+    <PackageVersion Include="Esatto.Win32.Common" Version="3.0.6" />
+    <PackageVersion Include="Esatto.Win32.CommonControls" Version="3.0.6" />
+    <PackageVersion Include="Esatto.Win32.Registry" Version="3.0.6" />
+    <PackageVersion Include="Esatto.Win32.Registry.AdmxExporter" Version="3.0.6" />
+    <PackageVersion Include="Esatto.Win32.RdpDvc.Common" Version="3.0.6" />
     <PackageVersion Include="System.Text.Json" Version="7.0.3" />
   </ItemGroup>
 </Project>

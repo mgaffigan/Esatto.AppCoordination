@@ -16,7 +16,11 @@
 
     <StandardDirectory Id="ProgramFiles6432Folder">
       <Directory Id="CompanyFolder" Name="Esatto">
-        <Directory Id="INSTALLFOLDER" Name="AppCoord2" />
+        <Directory Id="INSTALLFOLDER" Name="AppCoord2">
+          <Directory Id="admx" Name="PolicyDefinitions">
+            <Directory Id="adml" Name="en-US" />
+          </Directory>
+        </Directory>
       </Directory>
     </StandardDirectory>
 
@@ -250,6 +254,12 @@
       </Component>
       <Component>
         <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)Esatto.Win32.Registry.dll" KeyPath="yes" />
+      </Component>
+      <Component Directory="admx">
+        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)PolicyDefinitions\Esatto.AppCoordination.Teleport.admx" KeyPath="yes" />
+      </Component>
+      <Component Directory="adml">
+        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)PolicyDefinitions\en-US\Esatto.AppCoordination.Teleport.adml" KeyPath="yes" />
       </Component>
     </ComponentGroup>
 
