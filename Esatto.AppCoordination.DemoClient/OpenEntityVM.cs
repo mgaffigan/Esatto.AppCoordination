@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -41,9 +42,18 @@ namespace Esatto.AppCoordination.DemoClient
 
             public MyPublishedAction(string key, string action, CoordinatedApp app)
             {
+                using var banana = typeof(MyPublishedAction).Assembly.GetManifestResourceStream("Esatto.AppCoordination.DemoClient.Banana.png");
+                var ms = new MemoryStream();
+                banana.CopyTo(ms);
+
                 this.ActionName = action;
                 this.Action = app.Publish(CPath.Suffix(key, "command"),
-                    new EntryValue() { { "DisplayName", action } }, OnInvoked);
+                    new EntryValue() 
+                    { 
+                        { "DisplayName", action },
+                        { "ActionType", "Associate" },
+                        { "IconData", Convert.ToBase64String(ms.ToArray()) }
+                    }, OnInvoked);
             }
 
             private string OnInvoked(string arg)

@@ -9,6 +9,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -56,14 +57,12 @@ namespace Esatto.AppCoordination.DemoClient
 
         private void btInvoke_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                MessageBox.Show(ViewModel.SelectedOtherEntity.Entity.Invoke(@"[""C:\\dev\\gitroot\\Esatto.AppCoord\\Esatto.AppCoordination.DemoCoordinatedNotepad\\bin\\Debug\\net7.0-windows\\example2.txt""]"));
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-            }
+            var foreign = ViewModel.SelectedOtherEntity;
+            if (foreign is null) return;
+
+            var invoke = new InvokeRequestPrompt(foreign.Entity);
+            invoke.Owner = this;
+            invoke.ShowDialog();
         }
     }
 }

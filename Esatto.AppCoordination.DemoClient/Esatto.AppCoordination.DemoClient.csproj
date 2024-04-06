@@ -8,6 +8,12 @@
   </PropertyGroup>
   <Import Project="..\assets\EsattoCSCommon.targets" />
   <ItemGroup>
+    <None Remove="Banana.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Banana.png" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Esatto.AppCoordination.Common\Esatto.AppCoordination.Common.csproj" />
     <PackageReference Include="Esatto.Utilities" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />

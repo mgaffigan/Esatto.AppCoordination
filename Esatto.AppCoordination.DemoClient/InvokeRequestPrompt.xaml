@@ -1,0 +1,14 @@
+﻿<Window x:Class="Esatto.AppCoordination.DemoClient.InvokeRequestPrompt"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Esatto.AppCoordination.DemoClient"
+        mc:Ignorable="d"
+        Title="Invoke" Height="181" Width="800">
+    <Grid>
+        <Label Content="_Payload:" Target="{Binding ElementName=tbPayload}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,0,0,0"/>
+        <TextBox Margin="10,26,10,38" TextWrapping="Wrap" Text="" AcceptsReturn="True" AcceptsTab="True" x:Name="tbPayload" />
+        <Button Content="_Ok" IsDefault="True" Margin="0,0,10,10" HorizontalAlignment="Right" Width="75" Height="23" VerticalAlignment="Bottom" Click="Button_Click" />
+    </Grid>
+</Window>
