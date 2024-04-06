@@ -2,9 +2,7 @@
 using Esatto.Win32.Com;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Collections;
+using System.Runtime.InteropServices;
 
 namespace Esatto.AppCoordination;
 
@@ -47,10 +45,20 @@ public class CoordinatedApp : IDisposable
 
     private IConnection Connect(bool silentlyFail, ILogger logger)
     {
-        try
+        IConnection ConnectInternal()
         {
             var coordinator = ComInterop.CreateLocalServer<ICoordinator>(new Guid(CoordinationConstants.CoordinatorClsid));
             return coordinator.Connect(new CoordinatedAppThunk(this));
+        }
+
+        try
+        {
+            return ConnectInternal();
+        }
+        catch (COMException ex) when (ex.HResult == unchecked((int)0x8001010D) /* RPC_E_CANTCALLOUT_ININPUTSYNCCALL */)
+        {
+            // Marshal to thread-pool to avoid RPC_E_CANTCALLOUT_ININPUTSYNCCALL.
+            return Task.Run(ConnectInternal).Result;
         }
         catch (Exception ex) when (silentlyFail)
         {
