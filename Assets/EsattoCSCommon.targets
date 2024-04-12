@@ -16,7 +16,7 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)public.snk</AssemblyOriginatorKeyFile>
     <ApplicationIcon>$(MSBuildThisFileDirectory)EsattoModule32.ico</ApplicationIcon>
-    <Version>4.0.1</Version>
+    <Version>4.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
