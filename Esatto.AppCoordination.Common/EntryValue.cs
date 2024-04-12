@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Esatto.AppCoordination;
 
@@ -37,11 +38,23 @@ public interface IReadOnlyEntryValue : IReadOnlyDictionary<string, object?>
 
 public static class IReadOnlyEntryValueExtensions
 {
+#if NET
+    [return: NotNullIfNotNull(nameof(@default))]
+#endif
     public static T? GetValueOrDefault<T>(this IReadOnlyEntryValue @this, string key, T? @default = default)
     {
-        if (@this.TryGetValue(key, out var oValue) && oValue is T tValue)
+        if (@this.TryGetValue(key, out var oValue) && oValue is not null)
         {
-            return tValue;
+            try
+            {
+                var t = typeof(T);
+                t = Nullable.GetUnderlyingType(t) ?? t;
+                return (T)Convert.ChangeType(oValue, t)!;
+            }
+            catch
+            {
+                // nop if wrong datatype
+            }
         }
         return @default;
     }
