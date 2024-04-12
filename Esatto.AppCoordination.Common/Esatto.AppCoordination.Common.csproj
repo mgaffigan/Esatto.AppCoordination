@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>Esatto.AppCoordination</RootNamespace>
-    <TargetFrameworks>net48;net7.0-windows</TargetFrameworks>
+    <TargetFrameworks>net462;net7.0-windows</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>

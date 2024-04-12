@@ -21,7 +21,6 @@ public class NullCoordinator : ICoordinator
     }
 }
 
-
 [ComVisible(true), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 [Guid("D29FBC53-6632-4826-8917-D1A95AE6471D")]
 public interface IConnection : IDisposable
@@ -34,11 +33,20 @@ public interface IConnection : IDisposable
     string Invoke(string path, string key, string payload, out bool failed);
 }
 
-public class NullConnection : IConnection
+public class DisconnectibleConnection : IConnection
 {
+    public IConnection? Inner { get; private set; }
+
+    public DisconnectibleConnection(IConnection? inner)
+    {
+        this.Inner = inner;
+    }
+
     public void Dispose()
     {
-        // nop
+        var t = this.Inner;
+        this.Inner = null;
+        t?.Dispose();
     }
 
     public string Invoke(string path, string key, string payload, out bool failed)
@@ -48,6 +56,15 @@ public class NullConnection : IConnection
     }
 
     public void Publish(string data)
+    {
+        // nop
+    }
+}
+
+public class NullConnection : DisconnectibleConnection
+{
+    public NullConnection() 
+        : base(null)
     {
         // nop
     }

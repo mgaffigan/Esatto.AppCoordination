@@ -78,14 +78,31 @@ public class SingleInstanceApp
         });
     }
 
-    public PublishedEntry PublishEntry(EntryValue value, Func<string, string>? action)
+    public PublishedEntry PublishEntry(EntryValue value)
+    {
+        MolestPublishedEntry(value);
+        return App.Publish(Key, value);
+    }
+
+    public PublishedEntry PublishEntry(EntryValue value, Func<string, string> action)
+    {
+        MolestPublishedEntry(value);
+        return App.Publish(Key, value, action);
+    }
+
+    public PublishedEntry PublishEntry(EntryValue value, Func<string, Task<string>> action)
+    {
+        MolestPublishedEntry(value);
+        return App.Publish(Key, value, action);
+    }
+
+    private static void MolestPublishedEntry(EntryValue value)
     {
         value["Alive"] = true;
         if (!value.ContainsKey("Priority"))
         {
             value["Priority"] = 1_000;
         }
-        return App.Publish(Key, value, action);
     }
 
     public StaticEntryHandler RegisterStatic(Action<string[]> action)

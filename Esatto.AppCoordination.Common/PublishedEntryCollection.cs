@@ -21,7 +21,7 @@ internal class PublishedEntryCollection
         this.Logger = logger;
     }
 
-    public PublishedEntry Publish(string key, EntryValue value, Func<string, string>? action)
+    public PublishedEntry Publish(string key, EntryValue value, Func<string, Task<string>>? action)
     {
         PublishedEntry entry;
         lock (SyncPublished)
@@ -34,7 +34,7 @@ internal class PublishedEntryCollection
         return entry;
     }
 
-    public string Invoke(CAddress address, string payload, out bool failed)
+    public Task<string> Invoke(CAddress address, string payload)
     {
         PublishedEntry? entry;
         lock (SyncPublished)
@@ -45,23 +45,8 @@ internal class PublishedEntryCollection
             }
         }
 
-        try
-        {
-            var action = entry.Action ?? throw new NotSupportedException("No action defined for entry");
-            var result = action(payload);
-            failed = false;
-            return result;
-        }
-        catch (Exception ex)
-        {
-            if (ex is not InvokeFaultException)
-            {
-                Logger.LogError(ex, "Error invoking action for entry {0}", address);
-            }
-
-            failed = true;
-            return InvokeFaultException.ToJson(ex);
-        }
+        var action = entry.Action ?? throw new NotSupportedException("No action defined for entry");
+        return action(payload);
     }
 
     internal void RemoveEntry(CAddress address)

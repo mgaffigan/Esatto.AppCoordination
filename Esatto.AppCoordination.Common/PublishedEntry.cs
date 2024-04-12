@@ -7,7 +7,7 @@ namespace Esatto.AppCoordination;
 
 public class PublishedEntry : IDisposable
 {
-    internal PublishedEntry(PublishedEntryCollection parent, CAddress address, EntryValue value, Func<string, string>? action)
+    internal PublishedEntry(PublishedEntryCollection parent, CAddress address, EntryValue value, Func<string, Task<string>>? action)
     {
         Parent = parent;
         Address = address;
@@ -29,7 +29,7 @@ public class PublishedEntry : IDisposable
 
     private readonly PublishedEntryCollection Parent;
 
-    internal readonly Func<string, string>? Action;
+    internal readonly Func<string, Task<string>>? Action;
 
     internal readonly CAddress Address;
     public string Key => Address.Key;
