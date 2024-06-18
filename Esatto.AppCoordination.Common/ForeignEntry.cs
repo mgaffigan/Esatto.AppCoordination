@@ -35,6 +35,8 @@ public class ForeignEntry
     public string SourcePath => Address.Path;
     public string Key => Address.Key;
 
+    public string DisplayName => Value.GetValueOrDefault("DisplayName", Key)!;
+
     private EntryValue _Value;
     public IReadOnlyEntryValue Value => _Value;
 
