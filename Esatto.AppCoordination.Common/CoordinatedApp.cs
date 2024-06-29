@@ -2,6 +2,7 @@
 using Esatto.Win32.Com;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Esatto.AppCoordination;
@@ -56,18 +57,25 @@ public class CoordinatedApp : IDisposable
 
         try
         {
-            Connection.Dispose();
+            try
+            {
+                Connection.Dispose();
+            }
+            catch when (disposing)
+            {
+                // nop
+            }
+            catch (Exception ex) when (SilentlyFail)
+            {
+                Logger.LogWarning(ex, "Failed to disconnect from coordinator.  Ignoring.");
+            }
+
+            AppDomain.CurrentDomain.ProcessExit -= AppDomain_ProcessExit;
         }
-        catch when (disposing)
+        catch
         {
             // nop
         }
-        catch (Exception ex) when (SilentlyFail)
-        {
-            Logger.LogWarning(ex, "Failed to disconnect from coordinator.  Ignoring.");
-        }
-
-        AppDomain.CurrentDomain.ProcessExit -= AppDomain_ProcessExit;
     }
 
     private IConnection Connect(bool silentlyFail, ILogger logger)
@@ -94,16 +102,16 @@ public class CoordinatedApp : IDisposable
         }
     }
 
-    public PublishedEntry Publish(string key, EntryValue value) 
+    public PublishedEntry Publish(string key, EntryValue value)
         => PublishedEntries.Publish(key, value, null);
 
-    public PublishedEntry Publish(string key, EntryValue value, Func<string, string> action) 
+    public PublishedEntry Publish(string key, EntryValue value, Func<string, string> action)
         => PublishedEntries.Publish(key, value, k => Task.FromResult(action(k)));
 
-    public PublishedEntry Publish(string key, EntryValue value, Func<string, Task<string>> action) 
+    public PublishedEntry Publish(string key, EntryValue value, Func<string, Task<string>> action)
         => PublishedEntries.Publish(key, value, action);
 
-    public SingleInstanceApp GetSingleInstanceApp(string key, Guid? clsid = null) 
+    public SingleInstanceApp GetSingleInstanceApp(string key, Guid? clsid = null)
         => new SingleInstanceApp(this, Logger, key, clsid, SyncCtx);
 
     internal string Invoke(CAddress address, string payload)
