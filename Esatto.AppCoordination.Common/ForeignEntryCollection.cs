@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Esatto.AppCoordination;
 
@@ -129,6 +130,24 @@ public class ForeignEntryCollection : IReadOnlyList<ForeignEntry>, INotifyCollec
         lock (SyncRoot)
         {
             Projections.Remove(proj);
+        }
+    }
+
+    public bool TryGetFirst(string key,
+#if NET
+        [MaybeNullWhen(false)]
+#endif
+        out ForeignEntry entry)
+    {
+        lock (SyncRoot)
+        {
+            entry = Entries.Values
+                .Where(fe => fe.Key == key)
+                .OrderBy(fe => fe.Value.ContainsKey("Alive") ? 0 : 1)
+                .ThenBy(fe => fe.Value.GetValueOrDefault("Priority", 10_000))
+                .ThenBy(fe => fe.SourcePath.Length)
+                .FirstOrDefault();
+            return entry is not null;
         }
     }
 }

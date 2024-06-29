@@ -54,18 +54,26 @@ public class SingleInstanceApp
         }
     }
 
+    public string Invoke(string payload)
+    {
+        if (!App.ForeignEntities.TryGetFirst(Key, out var entry))
+        {
+            throw new InvalidOperationException($"Key {Key} not found");
+        }
+
+        return entry.Invoke(payload);
+    }
+
+    public void Invoke(string[] args) => Invoke(JsonConvert.SerializeObject(args));
+
     public bool TryGetAlive(
 #if NET
         [MaybeNullWhen(false)]
 #endif
         out ForeignEntry entry)
     {
-        entry = App.ForeignEntities
-            .Where(fe => fe.Key == this.Key && fe.Value.ContainsKey("Alive"))
-            .OrderBy(fe => fe.Value.GetValueOrDefault("Priority", 10_000))
-            .ThenBy(fe => fe.SourcePath.Length)
-            .FirstOrDefault();
-        return entry is not null;
+        return App.ForeignEntities.TryGetFirst(Key, out entry)
+            && entry.Value.ContainsKey("Alive");
     }
 
     public PublishedEntry PublishEntry(EntryValue value, Action<string[]> action)
