@@ -152,15 +152,24 @@ public class ForeignEntryCollection : IReadOnlyList<ForeignEntry>, INotifyCollec
     }
 }
 
-public class FilteredForeignEntryCollection : ObservableCollection<ForeignEntry>, IDisposable
+public class FilteredForeignEntryCollection : ReadOnlyObservableCollection<ForeignEntry>, IDisposable, IObservableCollection<ForeignEntry>
 {
     private readonly ForeignEntryCollection Parent;
     internal readonly Func<string, bool> Predicate;
+    private readonly ObservableCollection<ForeignEntry> BaseList;
 
     internal FilteredForeignEntryCollection(ForeignEntryCollection parent, Func<string, bool> predicate)
+        : this(parent, predicate, new ObservableCollection<ForeignEntry>())
+    {
+        // nop, just here to create the base list
+    }
+
+    private FilteredForeignEntryCollection(ForeignEntryCollection parent, Func<string, bool> predicate, ObservableCollection<ForeignEntry> baseList)
+        : base(baseList)
     {
         this.Parent = parent;
         this.Predicate = predicate;
+        this.BaseList = baseList;
         Invalidate();
     }
 
@@ -171,6 +180,6 @@ public class FilteredForeignEntryCollection : ObservableCollection<ForeignEntry>
 
     internal void Invalidate()
     {
-        this.MakeEqualTo(this.Parent.ToList(Predicate));
+        BaseList.MakeEqualTo(this.Parent.ToList(Predicate));
     }
 }
