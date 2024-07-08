@@ -7,6 +7,8 @@ namespace Esatto.AppCoordination;
 
 public class PublishedEntry : IDisposable
 {
+    bool isDisposed;
+
     internal PublishedEntry(PublishedEntryCollection parent, CAddress address, EntryValue value, Func<string, Task<string>>? action)
     {
         Parent = parent;
@@ -14,16 +16,39 @@ public class PublishedEntry : IDisposable
         _Value = value;
         Action = action;
     }
-    
+
     ~PublishedEntry()
     {
-        Dispose();
+        Dispose(false);
     }
 
     public void Dispose()
     {
-        Parent.RemoveEntry(Address);
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
+
+    private void Dispose(bool isDisposing)
+    {
+        if (isDisposed) return;
+        isDisposed = true;
+
+        Parent.RemoveEntry(Address);
+
+        if (isDisposing)
+        {
+            try
+            {
+                Disposed?.Invoke(this, EventArgs.Empty);
+            }
+            catch when (!isDisposing)
+            {
+                // nop
+            }
+        }
+    }
+
+    public event EventHandler? Disposed;
 
     public override string ToString() => Address.ToString();
 
@@ -44,6 +69,11 @@ public class PublishedEntry : IDisposable
 #endif
         set
         {
+            if (isDisposed)
+            {
+                throw new ObjectDisposedException(nameof(PublishedEntry));
+            }
+
             var dup = value.Clone();
             if (_Value is not null && JToken.DeepEquals(_Value.Value, dup.Value))
             {
