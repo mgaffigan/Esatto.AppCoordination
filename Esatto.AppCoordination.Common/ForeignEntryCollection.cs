@@ -152,7 +152,7 @@ public class ForeignEntryCollection : IReadOnlyList<ForeignEntry>, INotifyCollec
     }
 }
 
-public class FilteredForeignEntryCollection : ReadOnlyObservableCollection<ForeignEntry>, IDisposable, IObservableCollection<ForeignEntry>
+public class FilteredForeignEntryCollection : ReadOnlyObservableCollection<ForeignEntry>, IDisposable
 {
     private readonly ForeignEntryCollection Parent;
     internal readonly Func<string, bool> Predicate;
