@@ -1,6 +1,4 @@
-﻿using Esatto.AppCoordination.IPC;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+﻿using Esatto.Utilities;
 using Newtonsoft.Json.Linq;
 
 namespace Esatto.AppCoordination;
@@ -9,6 +7,7 @@ public class ForeignEntry
 {
     private readonly CoordinatedApp Parent;
     internal readonly CAddress Address;
+    private readonly List<PublishedEntry> Dependents = new();
 
     internal ForeignEntry(CoordinatedApp parent, CAddress address, JToken value)
     {
@@ -43,6 +42,29 @@ public class ForeignEntry
     internal void OnValueChanged() => ValueChanged?.Invoke(this, EventArgs.Empty);
     public event EventHandler? ValueChanged;
 
-    internal void OnRemoved() => Removed?.Invoke(this, EventArgs.Empty);
+    internal void OnRemoved()
+    {
+        lock (Dependents)
+        {
+            Dependents.DisposeAll();
+        }
+        Removed?.Invoke(this, EventArgs.Empty);
+    }
+
     public event EventHandler? Removed;
+
+    public PublishedEntry PublishDependent(string key, EntryValue value)
+        => PublishDependent(key, value, (Func<string, Task<string>>)null!);
+    public PublishedEntry PublishDependent(string key, EntryValue value, Func<string, string> action)
+        => PublishDependent(key, value, k => Task.FromResult(action(k)));
+
+    public PublishedEntry PublishDependent(string key, EntryValue value, Func<string, Task<string>> action)
+    {
+        var ent = Parent.Publish(key, value, action);
+        lock (Dependents)
+        {
+            Dependents.Add(ent);
+        }
+        return ent;
+    }
 }
