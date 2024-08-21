@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 
 namespace Esatto.AppCoordination
 {
+#if !NET
     [Serializable]
+#endif
     public class InvokeFaultException : Exception
     {
         public string? RawPayload { get; set; }
@@ -18,9 +20,11 @@ namespace Esatto.AppCoordination
         public InvokeFaultException() { }
         public InvokeFaultException(string message) : base(message) { }
         public InvokeFaultException(string message, Exception? inner) : base(message, inner) { }
+#if !NET
         protected InvokeFaultException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+#endif
 
         public static string ToJson(Exception ex)
         {

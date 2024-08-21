@@ -1,4 +1,4 @@
-﻿<Project Sdk="WixToolset.Sdk/4.0.0">
+﻿<Project Sdk="WixToolset.Sdk/5.0.0">
   <PropertyGroup>
     <!-- Platforms seems to prevent VS from allowing selection of a non-x64 platform -->
     <Platforms>x64</Platforms>
@@ -6,20 +6,40 @@
     <Platform>x64</Platform>
     <InstallerPlatform>x64</InstallerPlatform>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <SuppressIces>ICE61</SuppressIces>
+    <SuppressValidation>false</SuppressValidation>
+  </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Esatto.AppCoordination.Coordinator\Esatto.AppCoordination.Coordinator.csproj" />
-    <ProjectReference Include="..\Esatto.AppCoordination.DemoClient\Esatto.AppCoordination.DemoClient.csproj">
+    <ProjectReference Include="..\Esatto.AppCoordination.Common\Esatto.AppCoordination.Common.csproj">
+      <SetTargetFramework>TargetFramework=net462</SetTargetFramework>
+    </ProjectReference>
+    <ProjectReference Include="..\Esatto.AppCoordination.Coordinator\Esatto.AppCoordination.Coordinator.csproj" Publish="true" />
+    <ProjectReference Include="..\Esatto.AppCoordination.DemoClient\Esatto.AppCoordination.DemoClient.csproj" Publish="true">
       <SetTargetFramework>TargetFramework=net48</SetTargetFramework>
     </ProjectReference>
-    <ProjectReference Include="..\Esatto.AppCoordination.Teleport\Esatto.AppCoordination.Teleport.csproj">
+    <ProjectReference Include="..\Esatto.AppCoordination.Teleport\Esatto.AppCoordination.Teleport.csproj" Publish="true">
       <SetTargetFramework>TargetFramework=net48</SetTargetFramework>
     </ProjectReference>
+    <DiffProjectResult Include="Esatto.AppCoordination.Teleport" BaseProject="Esatto.AppCoordination.Coordinator" />
+    <DiffProjectResult Include="Esatto.AppCoordination.DemoClient" BaseProject="Esatto.AppCoordination.Teleport" />
+    <DiffProjectResult Include="Esatto.AppCoordination.DemoClient" BaseProject="Esatto.AppCoordination.Coordinator" />
   </ItemGroup>
   <!-- Paranoia -->
   <Target Name="VerifyPlatform" Condition="'$(Platform)' != 'x64' or '$(InstallerPlatform)' != 'x64'" BeforeTargets="CoreCompile">
     <Error Text="This project must be built for x64" />
   </Target>
-  
+  <!-- Diff projects and create bindings -->
+  <Target Name="DiffProjectsAndBind" Condition="'@(DiffProjectResult)' != ''" AfterTargets="_ConvertResolvedProjectReferencesIntoWixConstructs">
+    <ItemGroup>
+      <BaseProjectFiles Include="$(IntermediateOutputPath)publish\%(DiffProjectResult.BaseProject)\**\*">
+        <TargetProject>%(DiffProjectResult.Identity)</TargetProject>
+        <BaseProject>%(DiffProjectResult.BaseProject)</BaseProject>
+      </BaseProjectFiles>
+      <DerivedExcludeFiles Include="@(BaseProjectFiles -> '$(IntermediateOutputPath)publish\%(TargetProject)\%(RecursiveDir)%(Filename)%(Extension)')" />
+    </ItemGroup>
+    <Delete Files="@(DerivedExcludeFiles)" />
+  </Target>
   <!-- Signing command -->
   <!-- signtool sign /a /v /fd SHA256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /td SHA256 /sha1 49b27c9f8ca411c5eeb8c834a36d5a7ded9f9b02 Esatto.AppCoordination.Setup.msi -->
 </Project>

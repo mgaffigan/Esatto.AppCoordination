@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net48;net7.0-windows</TargetFrameworks>
-    <PlatformTarget Condition="'$(TargetFramework)' != 'net7.0-windows'">x86</PlatformTarget>
-    <PlatformTarget Condition="'$(TargetFramework)' == 'net7.0-windows'">x64</PlatformTarget>
+    <TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
+    <PlatformTarget Condition="'$(TargetFramework)' != 'net8.0-windows'">x86</PlatformTarget>
+    <PlatformTarget Condition="'$(TargetFramework)' == 'net8.0-windows'">x64</PlatformTarget>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <Import Project="..\assets\EsattoCSCommon.targets" />

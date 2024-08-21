@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>Esatto.AppCoordination</RootNamespace>
-    <TargetFrameworks>net462;net7.0-windows</TargetFrameworks>
+    <TargetFrameworks>net462;net8.0-windows</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
@@ -27,6 +27,13 @@
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Esatto.Utilities" />
     <PackageReference Include="Esatto.Win32.Com" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="dSPACE.Runtime.InteropServices.BuildTasks" NoWarn="NU1701">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

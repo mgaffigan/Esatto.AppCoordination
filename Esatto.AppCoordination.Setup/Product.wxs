@@ -1,273 +1,90 @@
 ﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package Name="Esatto Application Coordination" Manufacturer="In Touch Technologies"
-           Version="4.0.0.0" UpgradeCode="{939BFD63-B6E1-44BC-BD9E-225DDC30CF51}"
+           Version="4.2.0" UpgradeCode="{939BFD63-B6E1-44BC-BD9E-225DDC30CF51}"
            Language="1033" Compressed="yes" InstallerVersion="200" Scope="perMachine">
     <MajorUpgrade AllowDowngrades="yes" />
     <MediaTemplate EmbedCab="yes" />
     <Icon Id="EsattoIcon.exe" SourceFile="..\Assets\EsattoModule32.ico" />
     <Property Id="ARPPRODUCTICON" Value="EsattoIcon.exe" />
-    
-    <Feature Id="ProductFeature" Title="All Features" Level="1">
-      <ComponentGroupRef Id="Coordinator" />
-      <ComponentGroupRef Id="DemoClient" />
-      <ComponentGroupRef Id="MstscPlugin" />
-      <ComponentGroupRef Id="Teleport" />
-    </Feature>
 
     <StandardDirectory Id="ProgramFiles6432Folder">
       <Directory Id="CompanyFolder" Name="Esatto">
-        <Directory Id="INSTALLFOLDER" Name="AppCoord2">
-          <Directory Id="admx" Name="PolicyDefinitions">
-            <Directory Id="adml" Name="en-US" />
-          </Directory>
-        </Directory>
+        <Directory Id="INSTALLFOLDER" Name="AppCoord2" />
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramFilesFolder">
+      <Directory Id="CompanyFolder32" Name="Esatto">
+        <Directory Id="INSTALLFOLDER32" Name="AppCoord2" />
       </Directory>
     </StandardDirectory>
 
-    <ComponentGroup Id="Coordinator" Directory="INSTALLFOLDER">
-      <Component>
-        <File Id="COORDEXE" Source="$(var.Esatto.AppCoordination.Coordinator.TargetPath)" KeyPath="yes" />
+    <Component>
+      <File Id="COORDEXE" Source="!(bindpath.Esatto.AppCoordination.Coordinator)\Esatto.AppCoordination.Coordinator.exe" KeyPath="yes" />
         
-        <!-- Classes -->
-        <!-- Coordinator -->
-        <RegistryValue Root="HKCR" Key="CLSID\{13853D88-306E-452E-89B1-B655BA3E82D0}\LocalServer32" Value="[#COORDEXE]" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\CLSID\{13853D88-306E-452E-89B1-B655BA3E82D0}\LocalServer32" Value="[#COORDEXE]" Type="string" />
-        <!-- WTS plugin -->
-        <RegistryValue Root="HKCR" Key="CLSID\{281BB6F7-B2A9-40D7-9F02-8856E3EDC505}\LocalServer32" Value="[#COORDEXE]" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\CLSID\{281BB6F7-B2A9-40D7-9F02-8856E3EDC505}\LocalServer32" Value="[#COORDEXE]" Type="string" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetPath).config" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Esatto.AppCoordination.Common.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Id="COMMONTLB" Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Esatto.AppCoordination.Common.tlb" KeyPath="yes" />
-        
-        <!-- Typelib -->
-        <RegistryValue Root="HKCR" Key="TypeLib\{540A24BD-82EC-41B8-8905-33A542EC5021}\4.0" Value="Esatto_AppCoord2_Common" Type="string" />
-        <RegistryValue Root="HKCR" Key="TypeLib\{540A24BD-82EC-41B8-8905-33A542EC5021}\4.0\0\win64" Value="[#COMMONTLB]" Type="string" />
-        <RegistryValue Root="HKCR" Key="TypeLib\{540A24BD-82EC-41B8-8905-33A542EC5021}\4.0\FLAGS" Value="0" Type="string" />
-        
-        <!-- Interfaces -->
-        <!-- ICoordinator -->
-        <RegistryValue Root="HKCR" Key="Interface\{06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E4}" Value="ICoordinator" Type="string" />
-        <RegistryValue Root="HKCR" Key="Interface\{06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E4}\ProxyStubClsid32" Value="{00020424-0000-0000-C000-000000000046}" Type="string" />
-        <RegistryValue Root="HKCR" Key="Interface\{06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E4}\TypeLib" Value="{540A24BD-82EC-41B8-8905-33A542EC5021}" Type="string" />
-        <RegistryValue Root="HKCR" Key="Interface\{06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E4}\TypeLib" Name="Version" Value="4.0" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E4}" Value="ICoordinator" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E4}\ProxyStubClsid32" Value="{00020424-0000-0000-C000-000000000046}" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E4}\TypeLib" Value="{540A24BD-82EC-41B8-8905-33A542EC5021}" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E4}\TypeLib" Name="Version" Value="4.0" Type="string" />
-        <!-- IConnection -->
-        <RegistryValue Root="HKCR" Key="Interface\{D29FBC53-6632-4826-8917-D1A95AE6471D}" Value="IConnection" Type="string" />
-        <RegistryValue Root="HKCR" Key="Interface\{D29FBC53-6632-4826-8917-D1A95AE6471D}\ProxyStubClsid32" Value="{00020424-0000-0000-C000-000000000046}" Type="string" />
-        <RegistryValue Root="HKCR" Key="Interface\{D29FBC53-6632-4826-8917-D1A95AE6471D}\TypeLib" Value="{540A24BD-82EC-41B8-8905-33A542EC5021}" Type="string" />
-        <RegistryValue Root="HKCR" Key="Interface\{D29FBC53-6632-4826-8917-D1A95AE6471D}\TypeLib" Name="Version" Value="4.0" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{D29FBC53-6632-4826-8917-D1A95AE6471D}" Value="IConnection" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{D29FBC53-6632-4826-8917-D1A95AE6471D}\ProxyStubClsid32" Value="{00020424-0000-0000-C000-000000000046}" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{D29FBC53-6632-4826-8917-D1A95AE6471D}\TypeLib" Value="{540A24BD-82EC-41B8-8905-33A542EC5021}" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{D29FBC53-6632-4826-8917-D1A95AE6471D}\TypeLib" Name="Version" Value="4.0" Type="string" />
-        <!-- IConnectionCallback -->
-        <RegistryValue Root="HKCR" Key="Interface\{30D76095-78D6-4855-AC96-30FC18E9B0F7}" Value="IConnectionCallback" Type="string" />
-        <RegistryValue Root="HKCR" Key="Interface\{30D76095-78D6-4855-AC96-30FC18E9B0F7}\ProxyStubClsid32" Value="{00020424-0000-0000-C000-000000000046}" Type="string" />
-        <RegistryValue Root="HKCR" Key="Interface\{30D76095-78D6-4855-AC96-30FC18E9B0F7}\TypeLib" Value="{540A24BD-82EC-41B8-8905-33A542EC5021}" Type="string" />
-        <RegistryValue Root="HKCR" Key="Interface\{30D76095-78D6-4855-AC96-30FC18E9B0F7}\TypeLib" Name="Version" Value="4.0" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{30D76095-78D6-4855-AC96-30FC18E9B0F7}" Value="IConnectionCallback" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{30D76095-78D6-4855-AC96-30FC18E9B0F7}\ProxyStubClsid32" Value="{00020424-0000-0000-C000-000000000046}" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{30D76095-78D6-4855-AC96-30FC18E9B0F7}\TypeLib" Value="{540A24BD-82EC-41B8-8905-33A542EC5021}" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{30D76095-78D6-4855-AC96-30FC18E9B0F7}\TypeLib" Name="Version" Value="4.0" Type="string" />
-        <!-- IStaticEntryHandler -->
-        <RegistryValue Root="HKCR" Key="Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}" Value="IStaticEntryHandler" Type="string" />
-        <RegistryValue Root="HKCR" Key="Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}\ProxyStubClsid32" Value="{00020424-0000-0000-C000-000000000046}" Type="string" />
-        <RegistryValue Root="HKCR" Key="Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}\TypeLib" Value="{540A24BD-82EC-41B8-8905-33A542EC5021}" Type="string" />
-        <RegistryValue Root="HKCR" Key="Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}\TypeLib" Name="Version" Value="4.0" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}" Value="IStaticEntryHandler" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}\ProxyStubClsid32" Value="{00020424-0000-0000-C000-000000000046}" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}\TypeLib" Value="{540A24BD-82EC-41B8-8905-33A542EC5021}" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\Interface\{6AB39F0A-9D96-4271-8A9A-ADD071F6743D}\TypeLib" Name="Version" Value="4.0" Type="string" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Esatto.Utilities.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Esatto.Win32.Com.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Esatto.Win32.RdpDvc.Common.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Bcl.AsyncInterfaces.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Configuration.Abstractions.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Configuration.Binder.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Configuration.CommandLine.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Configuration.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Configuration.EnvironmentVariables.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Configuration.FileExtensions.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Configuration.Json.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Configuration.UserSecrets.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.DependencyInjection.Abstractions.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.DependencyInjection.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.FileProviders.Abstractions.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.FileProviders.Physical.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.FileSystemGlobbing.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Hosting.Abstractions.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Hosting.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Logging.Abstractions.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Logging.Configuration.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Logging.Console.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Logging.Debug.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Logging.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Logging.EventLog.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Logging.EventSource.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Options.ConfigurationExtensions.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Options.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Microsoft.Extensions.Primitives.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)Newtonsoft.Json.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)System.Buffers.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)System.Diagnostics.DiagnosticSource.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)System.Memory.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)System.Numerics.Vectors.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)System.Runtime.CompilerServices.Unsafe.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)System.Text.Encodings.Web.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)System.Text.Json.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)System.Threading.Tasks.Extensions.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Coordinator.TargetDir)System.ValueTuple.dll" KeyPath="yes" />
-      </Component>
-    </ComponentGroup>
+      <!-- Classes -->
+      <!-- Coordinator -->
+      <RegistryValue Root="HKCR" Key="CLSID\{13853D88-306E-452E-89B1-B655BA3E82D0}\LocalServer32" Value="[#COORDEXE]" Type="string" />
+      <RegistryValue Root="HKCR" Key="WOW6432Node\CLSID\{13853D88-306E-452E-89B1-B655BA3E82D0}\LocalServer32" Value="[#COORDEXE]" Type="string" />
+      <!-- WTS plugin -->
+      <RegistryValue Root="HKCR" Key="CLSID\{281BB6F7-B2A9-40D7-9F02-8856E3EDC505}\LocalServer32" Value="[#COORDEXE]" Type="string" />
+      <RegistryValue Root="HKCR" Key="WOW6432Node\CLSID\{281BB6F7-B2A9-40D7-9F02-8856E3EDC505}\LocalServer32" Value="[#COORDEXE]" Type="string" />
+    </Component>
+    <Component Bitness="always64">
+      <File Source="!(bindpath.Esatto.AppCoordination.Common)\Esatto.AppCoordination.Common.tlb">
+        <TypeLib Id="540A24BD-82EC-41B8-8905-33A542EC5021" Description="Esatto_AppCoord2_Common" MajorVersion="4" MinorVersion="0" Language="0">
+          <Interface Id="06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E4" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="ICoordinator" />
+          <Interface Id="D29FBC53-6632-4826-8917-D1A95AE6471D" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IConnection" />
+          <Interface Id="30D76095-78D6-4855-AC96-30FC18E9B0F7" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IConnectionCallback" />
+          <Interface Id="6AB39F0A-9D96-4271-8A9A-ADD071F6743D" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IStaticEntryHandler" />
+        </TypeLib>
+      </File>
+    </Component>
+    <Component Bitness="always32" Directory="INSTALLFOLDER32">
+      <File Source="!(bindpath.Esatto.AppCoordination.Common)\Esatto.AppCoordination.Common.tlb">
+        <TypeLib Id="540A24BD-82EC-41B8-8905-33A542EC5021" Description="Esatto_AppCoord2_Common" MajorVersion="4" MinorVersion="0" Language="0">
+          <Interface Id="06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E4" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="ICoordinator" />
+          <Interface Id="D29FBC53-6632-4826-8917-D1A95AE6471D" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IConnection" />
+          <Interface Id="30D76095-78D6-4855-AC96-30FC18E9B0F7" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IConnectionCallback" />
+          <Interface Id="6AB39F0A-9D96-4271-8A9A-ADD071F6743D" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IStaticEntryHandler" />
+        </TypeLib>
+      </File>
+    </Component>
 
-    <ComponentGroup Id="DemoClient" Directory="INSTALLFOLDER">
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.DemoClient.TargetPath)" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.DemoClient.TargetPath).config" KeyPath="yes" />
-      </Component>
-    </ComponentGroup>
+    <Files Include="!(bindpath.Esatto.AppCoordination.Coordinator)\**">
+      <Exclude Files="!(bindpath.Esatto.AppCoordination.Coordinator)\Esatto.AppCoordination.Coordinator.exe" />
+      <Exclude Files="!(bindpath.Esatto.AppCoordination.Coordinator)\Esatto.AppCoordination.Common.tlb"/>
+    </Files>
+      
+    <Files Include="!(bindpath.Esatto.AppCoordination.DemoClient)\**" />
 
-    <ComponentGroup Id="Teleport" Directory="INSTALLFOLDER">
-      <Component>
-        <File Id="TELEPORTEXE" Source="$(var.Esatto.AppCoordination.Teleport.TargetPath)" KeyPath="yes" />
+    <Component>
+      <File Id="TELEPORTEXE" Source="!(bindpath.Esatto.AppCoordination.Teleport)\Esatto.AppCoordination.Teleport.exe" KeyPath="yes" />
 
-        <!-- Classes -->
-        <!-- Teleport Static Entry-->
-        <RegistryValue Root="HKCR" Key="CLSID\{BDC952ED-B54B-4E65-B652-5DBE197B8ABB}\LocalServer32" Value="[#TELEPORTEXE]" Type="string" />
-        <RegistryValue Root="HKCR" Key="WOW6432Node\CLSID\{BDC952ED-B54B-4E65-B652-5DBE197B8ABB}\LocalServer32" Value="[#TELEPORTEXE]" Type="string" />
+      <!-- Classes -->
+      <!-- Teleport Static Entry-->
+      <RegistryValue Root="HKCR" Key="CLSID\{BDC952ED-B54B-4E65-B652-5DBE197B8ABB}\LocalServer32" Value="[#TELEPORTEXE]" Type="string" />
+      <RegistryValue Root="HKCR" Key="WOW6432Node\CLSID\{BDC952ED-B54B-4E65-B652-5DBE197B8ABB}\LocalServer32" Value="[#TELEPORTEXE]" Type="string" />
         
-        <!-- Static Entry Registration-->
-        <RegistryValue Root="HKLM" Key="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport" Value="/Teleport/Target/" Type="string" />
-        <RegistryValue Root="HKLM" Key="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport"
-                       Name="CLSID" Value="{BDC952ED-B54B-4E65-B652-5DBE197B8ABB}" Type="string" />
+      <!-- Static Entry Registration-->
+      <RegistryValue Root="HKLM" Key="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport" Value="/Teleport/Target/" Type="string" />
+      <RegistryValue Root="HKLM" Key="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport"
+                      Name="CLSID" Value="{BDC952ED-B54B-4E65-B652-5DBE197B8ABB}" Type="string" />
         
-        <!-- File type associations -->
-        <RegistryValue Root="HKCR" Key="Applications\Esatto.AppCoordination.Teleport.exe" Name="FriendlyAppName" Value="Teleport" Type="string" />
-        <RegistryValue Root="HKLM" Key="SOFTWARE\RegisteredApplications" Name="Esatto.AppCoordination.Teleport"
-                       Value="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities" Type="string" />
-        <RegistryValue Root="HKLM" Key="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities"
-                       Name="ApplicationName" Value="Teleport" Type="string" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)TeleportConfig.psm1" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)TeleportConfig.psd1" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetPath).config" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)Esatto.Win32.Common.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)Esatto.Win32.CommonControls.dll" KeyPath="yes" />
-      </Component>
-      <Component>
-        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)Esatto.Win32.Registry.dll" KeyPath="yes" />
-      </Component>
-      <Component Directory="admx">
-        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)PolicyDefinitions\Esatto.AppCoordination.Teleport.admx" KeyPath="yes" />
-      </Component>
-      <Component Directory="adml">
-        <File Source="$(var.Esatto.AppCoordination.Teleport.TargetDir)PolicyDefinitions\en-US\Esatto.AppCoordination.Teleport.adml" KeyPath="yes" />
-      </Component>
-    </ComponentGroup>
+      <!-- File type associations -->
+      <RegistryValue Root="HKCR" Key="Applications\Esatto.AppCoordination.Teleport.exe" Name="FriendlyAppName" Value="Teleport" Type="string" />
+      <RegistryValue Root="HKLM" Key="SOFTWARE\RegisteredApplications" Name="Esatto.AppCoordination.Teleport"
+                      Value="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities" Type="string" />
+      <RegistryValue Root="HKLM" Key="SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities"
+                      Name="ApplicationName" Value="Teleport" Type="string" />
+    </Component>
 
-    <ComponentGroup Id="MstscPlugin" Directory="INSTALLFOLDER">
-      <Component Id="MstscPluginReg">
-        <RegistryValue Root="HKLM" Key="SOFTWARE\Microsoft\Terminal Server Client\Default\Addins\{281BB6F7-B2A9-40D7-9F02-8856E3EDC505}" 
-                       Name="Name" Value="{281BB6F7-B2A9-40D7-9F02-8856E3EDC505}" Type="string" KeyPath="yes" />
-      </Component>
-    </ComponentGroup>
+    <Files Include="!(bindpath.Esatto.AppCoordination.Teleport)\**">
+      <Exclude Files="!(bindpath.Esatto.AppCoordination.Teleport)\Esatto.AppCoordination.Teleport.exe" />
+    </Files>
+
+    <Component Id="MstscPluginReg">
+      <RegistryValue Root="HKLM" Key="SOFTWARE\Microsoft\Terminal Server Client\Default\Addins\{281BB6F7-B2A9-40D7-9F02-8856E3EDC505}" 
+                     Name="Name" Value="{281BB6F7-B2A9-40D7-9F02-8856E3EDC505}" Type="string" KeyPath="yes" />
+    </Component>
   </Package>
 </Wix>
