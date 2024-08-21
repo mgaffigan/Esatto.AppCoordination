@@ -102,6 +102,8 @@ public class ForeignEntryCollection : IReadOnlyList<ForeignEntry>, INotifyCollec
         }
     }
 
+    public IReadOnlyList<ForeignEntry> ToList(string key)
+        => ToList(k => key == k);
     public IReadOnlyList<ForeignEntry> ToList(Func<string, bool> predicate)
     {
         lock (SyncRoot)

@@ -64,5 +64,13 @@ namespace Esatto.AppCoordination.DemoClient
             invoke.Owner = this;
             invoke.ShowDialog();
         }
+
+        private void lbOtherAppsEntities_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var item = ((ListBox)sender).SelectedItem as OpenEntityVM;
+            if (item is null) return;
+
+            Clipboard.SetText(item.Entity.Value.JsonValue);
+        }
     }
 }

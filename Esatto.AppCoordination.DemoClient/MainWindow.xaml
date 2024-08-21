@@ -87,7 +87,7 @@
                 </Grid.RowDefinitions>
                 <Button x:Name="btAddCommandToSelected" Content="Add Cmd" HorizontalAlignment="Left" Margin="10,5,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Height="23" Click="btAddCommandToSelected_Click" IsEnabled="{Binding CanAddActionToSelectedOtherEntity, Mode=OneWay}"/>
                 <Button x:Name="btInvokeSelected" Content="Invoke" HorizontalAlignment="Left" Margin="170,5,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Height="23" Click="btInvoke_Click" IsEnabled="{Binding CanAddActionToSelectedOtherEntity, Mode=OneWay}"/>
-                <ListBox x:Name="lbOtherAppsEntities" Margin="10,10,10,0" ItemsSource="{Binding OpenEntities}" SelectedItem="{Binding SelectedOtherEntity}" ItemTemplate="{DynamicResource OtherEntityTemplate}"/>
+                <ListBox x:Name="lbOtherAppsEntities" Margin="10,10,10,0" ItemsSource="{Binding OpenEntities}" SelectedItem="{Binding SelectedOtherEntity}" ItemTemplate="{DynamicResource OtherEntityTemplate}" MouseDoubleClick="lbOtherAppsEntities_MouseDoubleClick" />
                 <Button x:Name="btClearAllPublishedCommands" Content="Clear all" HorizontalAlignment="Left" Margin="90,5,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Height="23" Click="btClearAllPublishedCommands_Click"/>
             </Grid>
         </GroupBox>
