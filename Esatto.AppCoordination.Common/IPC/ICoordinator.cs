@@ -51,13 +51,19 @@ public class DisconnectibleConnection : IConnection
 
     public string Invoke(string path, string key, string payload, out bool failed)
     {
+        var inner = this.Inner;
+        if (inner != null)
+        {
+            return inner.Invoke(path, key, payload, out failed);
+        }
+
         failed = true;
         return "";
     }
 
     public void Publish(string data)
     {
-        // nop
+        Inner?.Publish(data);
     }
 }
 
