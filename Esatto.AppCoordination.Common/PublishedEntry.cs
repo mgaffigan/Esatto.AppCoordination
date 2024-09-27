@@ -11,9 +11,11 @@ public class PublishedEntry : IDisposable
 
     internal PublishedEntry(PublishedEntryCollection parent, CAddress address, EntryValue value, Func<string, Task<string>>? action)
     {
-        Parent = parent;
+        address.Validate();
+
+        Parent = parent ?? throw new ArgumentNullException(nameof(parent));
         Address = address;
-        _Value = value;
+        _Value = value ?? throw new ArgumentNullException(nameof(value));
         Action = action;
     }
 
