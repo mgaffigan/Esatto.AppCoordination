@@ -183,7 +183,14 @@ public class CoordinatedApp : IDisposable
             Task<string>? t = null;
             Parent.SyncCtx.Send(_ =>
             {
-                t = Parent.PublishedEntries.Invoke(address, payload);
+                try
+                {
+                    t = Parent.PublishedEntries.Invoke(address, payload);
+                }
+                catch (Exception ex)
+                {
+                    t = Task.FromException<string>(ex);
+                }
             }, null);
 
             if (t is null)
