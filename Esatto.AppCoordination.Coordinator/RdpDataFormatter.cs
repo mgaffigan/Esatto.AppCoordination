@@ -6,56 +6,43 @@ internal static class RdpDataFormatter
 {
     public const int
         CMD_INFORM = 1,
-        CMD_INVOKE_REQUEST = 2,
-        CMD_INVOKE_RESPONSE_RESULT = 3,
-        CMD_INVOKE_RESPONSE_ERROR = 4;
+        CMD_INVOKE_REQUEST = 2;
 
-    public static byte[] CreateInvokeRequest(int correlation, string path, string key, string payload)
+    public static byte[] CreateInvokeRequest(string? sourcePath, string path, string key, string payload)
     {
-        var szPath = Encoding.UTF8.GetByteCount(path);
-        var szKey = Encoding.UTF8.GetByteCount(key);
-        var szPayload = Encoding.UTF8.GetByteCount(payload);
-        var data = new byte[4 * 4 /* Action + Correlation + szPath + szKey */ + szPath + szKey + szPayload];
+        sourcePath ??= "";
+        var cbSourcePath = Encoding.UTF8.GetByteCount(sourcePath);
+        var cbPath = Encoding.UTF8.GetByteCount(path);
+        var cbKey = Encoding.UTF8.GetByteCount(key);
+        var cbPayload = Encoding.UTF8.GetByteCount(payload);
+        var data = new byte[4 * 4 /* Action + cbSourcePath + cbPath + cbKey */ + cbSourcePath + cbPath + cbKey + cbPayload];
 
         var i = 0;
         WriteInt32(data, i, CMD_INVOKE_REQUEST); i += 4;
-        WriteInt32(data, i, correlation); i += 4;
-        WriteInt32(data, i, szPath); i += 4;
-        WriteInt32(data, i, szKey); i += 4;
-        Encoding.UTF8.GetBytes(path, 0, path.Length, data, i); i += szPath;
-        Encoding.UTF8.GetBytes(key, 0, key.Length, data, i); i += szKey;
+        WriteInt32(data, i, cbSourcePath); i += 4;
+        WriteInt32(data, i, cbPath); i += 4;
+        WriteInt32(data, i, cbKey); i += 4;
+        Encoding.UTF8.GetBytes(sourcePath, 0, cbSourcePath, data, i); i += cbSourcePath;
+        Encoding.UTF8.GetBytes(path, 0, path.Length, data, i); i += cbPath;
+        Encoding.UTF8.GetBytes(key, 0, key.Length, data, i); i += cbKey;
         Encoding.UTF8.GetBytes(payload, 0, payload.Length, data, i);
         return data;
     }
 
-    public static (int correlation, string path, string key, string payload) ReadInvokeRequest(byte[] data)
+    public static (string? sourcePath, string path, string key, string payload) ReadInvokeRequest(byte[] data)
     {
         int i = 4 /* Header */;
-        var correlation = ReadInt32(data, i); i += 4;
-        var szPath = ReadInt32(data, i); i += 4;
-        var szKey = ReadInt32(data, i); i += 4;
-        var path = Encoding.UTF8.GetString(data, i, szPath); i += szPath;
-        var key = Encoding.UTF8.GetString(data, i, szKey); i += szKey;
+        var cbSourcePath = ReadInt32(data, i); i += 4;
+        var cbPath = ReadInt32(data, i); i += 4;
+        var cbKey = ReadInt32(data, i); i += 4;
+        var sourcePath = Encoding.UTF8.GetString(data, i, cbSourcePath); i += cbSourcePath;
+        var path = Encoding.UTF8.GetString(data, i, cbPath); i += cbPath;
+        var key = Encoding.UTF8.GetString(data, i, cbKey); i += cbKey;
         var payload = Encoding.UTF8.GetString(data, i, data.Length - i);
-        return (correlation, path, key, payload);
-    }
 
-    public static byte[] CreateInvokeResponse(int type, int correlation, string payload)
-    {
-        var data = new byte[8 /* Action + Correlation */ + Encoding.UTF8.GetByteCount(payload)];
-        int i = 0;
-        WriteInt32(data, i, type); i += 4;
-        WriteInt32(data, i, correlation); i += 4;
-        Encoding.UTF8.GetBytes(payload, 0, payload.Length, data, i);
-        return data;
-    }
+        if (sourcePath.Length == 0) sourcePath = null;
 
-    public static (int correlation, string payload) ReadInvokeResponse(byte[] data)
-    {
-        int i = 4 /* Action */;
-        var correlation = ReadInt32(data, i); i += 4;
-        var payload = Encoding.UTF8.GetString(data, i, data.Length - i);
-        return (correlation, payload);
+        return (sourcePath, path, key, payload);
     }
 
     public static byte[] CreateInformRequest(string sData)

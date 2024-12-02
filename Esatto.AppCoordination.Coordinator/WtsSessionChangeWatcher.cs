@@ -4,7 +4,6 @@ using Esatto.Win32.RdpDvc.SessionHostApi;
 using Esatto.Win32.RdpDvc.TSVirtualChannels;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.CodeDom;
 using System.ComponentModel;
 
 namespace Esatto.AppCoordination.Coordinator;

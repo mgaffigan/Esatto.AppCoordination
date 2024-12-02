@@ -2,7 +2,6 @@
 using Esatto.Win32.Com;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Esatto.AppCoordination;
@@ -12,8 +11,13 @@ public class CoordinatedApp : IDisposable
     private IConnection Connection;
     private readonly SynchronizationContext SyncCtx;
     private readonly ILogger Logger;
+    private readonly NonEntryInvokableCollection NonEntryDelegates = new();
     private readonly bool SilentlyFail;
     private bool IsDisposed;
+
+#if DEBUG
+    private string ConstructionStackTrace = Environment.StackTrace;
+#endif
 
     private PublishedEntryCollection PublishedEntries { get; }
     public ForeignEntryCollection ForeignEntities { get; }
@@ -54,6 +58,13 @@ public class CoordinatedApp : IDisposable
     {
         if (IsDisposed) return;
         IsDisposed = true;
+
+#if DEBUG
+        if (!disposing)
+        {
+            Logger.LogInformation("Leaked CoordinatedApp instance.  Did you forget to call Dispose()? Stack at creation: {Stack}", ConstructionStackTrace);
+        }
+#endif
 
         try
         {
@@ -114,30 +125,35 @@ public class CoordinatedApp : IDisposable
     public SingleInstanceApp GetSingleInstanceApp(string key, Guid? clsid = null)
         => new SingleInstanceApp(this, Logger, key, clsid, SyncCtx);
 
-    internal string Invoke(CAddress address, string payload)
-    {
-        try
-        {
-            if (Connection is DisconnectibleConnection dc && dc.Inner is IConnection inner)
-            {
-                ComInterop.CoAllowSetForegroundWindow(inner);
-            }
-            else
-            {
-                ComInterop.CoAllowSetForegroundWindow(Connection);
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogInformation(ex, "CoAllowSetForegroundWindow failed");
-        }
+    internal void InvokeOneWay(CAddress address, string payload)
+        => InvokeOneWay(null, address, payload);
 
-        var result = Connection.Invoke(address.Path, address.Key, payload, out var failed);
-        if (failed)
+    private void InvokeOneWay(string? replyPath, CAddress address, string payload)
+    {
+        var con = Connection;
+        con.CoAllowSetForegroundWindowNoThrow();
+        con.Invoke(replyPath, address.Path, address.Key, payload);
+    }
+
+    internal async Task<string> InvokeAsync(CAddress address, string payload, CancellationToken ct)
+    {
+        var respondBasePath = CPath.From("response", Guid.NewGuid().ToString("n"));
+        var tcs = new TaskCompletionSource<string>();
+        using var _1 = ct.Register(() => tcs.TrySetCanceled());
+        using var _2 = NonEntryDelegates.Add(respondBasePath, (_, path, _, payload) =>
         {
-            throw InvokeFaultException.FromJson(result);
-        }
-        return result;
+            var (prefix, last) = CPath.PopLast(path);
+            if (prefix != respondBasePath) throw new InvalidOperationException("Unexpected response path");
+
+            if (last == ResponseStatusCodes.Success) tcs.TrySetResult(payload);
+            else if (last == ResponseStatusCodes.Failed) tcs.TrySetException(InvokeFaultException.FromJson(payload));
+            else if (last == ResponseStatusCodes.Cancelled) tcs.TrySetCanceled();
+            else tcs.SetException(new InvalidOperationException($"Unexpected response status code {last}"));
+        });
+
+        await Task.Run(() => InvokeOneWay(respondBasePath, address, payload), ct);
+
+        return await tcs.Task.ConfigureAwait(false);
     }
 
     private class CoordinatedAppThunk : IConnectionCallback
@@ -177,42 +193,53 @@ public class CoordinatedApp : IDisposable
         }
 
         // Called from NTA on COM Call stack
-        public string Invoke(string path, string key, string payload, out bool failed)
+        public void HandleInvoke(string? sourcePath, string path, string key, string payload)
         {
+            if (Parent.NonEntryDelegates.TryGet(path, out var nonEntry))
+            {
+                // Non-entry actions are invoked synchronously
+                nonEntry(sourcePath, path, key, payload);
+                return;
+            }
+
             var address = new CAddress(path, key);
-            Task<string>? t = null;
-            Parent.SyncCtx.Send(_ =>
+            Parent.SyncCtx.Post(_ => HandleInvokeInternal(sourcePath, address, payload), null);
+        }
+
+        // Called from SyncCtx, cannot throw
+        private async void HandleInvokeInternal(string? sourcePath, CAddress address, string payload)
+        {
+            try
             {
                 try
                 {
-                    t = Parent.PublishedEntries.Invoke(address, payload);
+                    var result = await Parent.PublishedEntries.HandleInvoke(address, payload).ConfigureAwait(false);
+                    Respond(ResponseStatusCodes.Success, result);
                 }
+                catch (OperationCanceledException) { Respond(ResponseStatusCodes.Cancelled, ""); }
                 catch (Exception ex)
                 {
-                    t = Task.FromException<string>(ex);
+                    if (ex is not InvokeFaultException)
+                    {
+                        Parent.Logger.LogError(ex, "Error invoking action for entry {Address}", address);
+                    }
+                    Respond(ResponseStatusCodes.Failed, InvokeFaultException.ToJson(ex));
                 }
-            }, null);
-
-            if (t is null)
-            {
-                throw new InvalidOperationException("Invoke did not return a value");
-            }
-
-            try
-            {
-                var result = t.GetAwaiter().GetResult();
-                failed = false;
-                return result;
             }
             catch (Exception ex)
             {
-                if (ex is not InvokeFaultException)
-                {
-                    Parent.Logger.LogError(ex, "Error invoking action for entry {0}", address);
-                }
+                Parent.Logger.LogError(ex, "Double fault invoking action for entry {0}", address);
+            }
 
-                failed = true;
-                return InvokeFaultException.ToJson(ex);
+            void Respond(string statusCode, string payload)
+            {
+                if (sourcePath is null)
+                {
+                    Parent.Logger.LogInformation("No response path for action {Address} status {Status}: {Payload}", address, statusCode, payload);
+                    return;
+                }
+                var responsePath = CPath.Suffix(sourcePath, statusCode);
+                Parent.InvokeOneWay(null, new CAddress(responsePath, responsePath), payload);
             }
         }
     }

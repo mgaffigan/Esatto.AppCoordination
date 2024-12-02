@@ -1,11 +1,17 @@
-﻿namespace Esatto.AppCoordination.IPC;
+﻿using System.Text.Json;
+
+namespace Esatto.AppCoordination;
 
 public static class CoordinationConstants
 {
     public const string
         CoordinatorClsid = "13853D88-306E-452E-89B1-B655BA3E82D0",
         MstscPluginClsid = "281BB6F7-B2A9-40D7-9F02-8856E3EDC505",
-        CoordinatorRdpChannelName = "EAC2";
-}
+        CoordinatorRdpChannelName = "EAC3";
 
-#nullable restore
+    internal static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = null,
+        WriteIndented = false,
+    };
+}

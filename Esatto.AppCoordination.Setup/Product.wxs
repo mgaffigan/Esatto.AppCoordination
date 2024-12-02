@@ -1,6 +1,6 @@
 ﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package Name="Esatto Application Coordination" Manufacturer="In Touch Technologies"
-           Version="4.2.0" UpgradeCode="{939BFD63-B6E1-44BC-BD9E-225DDC30CF51}"
+           Version="4.3.0" UpgradeCode="{939BFD63-B6E1-44BC-BD9E-225DDC30CF51}"
            Language="1033" Compressed="yes" InstallerVersion="200" Scope="perMachine">
     <MajorUpgrade AllowDowngrades="yes" />
     <MediaTemplate EmbedCab="yes" />
@@ -9,12 +9,12 @@
 
     <StandardDirectory Id="ProgramFiles6432Folder">
       <Directory Id="CompanyFolder" Name="Esatto">
-        <Directory Id="INSTALLFOLDER" Name="AppCoord2" />
+        <Directory Id="INSTALLFOLDER" Name="AppCoord5" />
       </Directory>
     </StandardDirectory>
     <StandardDirectory Id="ProgramFilesFolder">
       <Directory Id="CompanyFolder32" Name="Esatto">
-        <Directory Id="INSTALLFOLDER32" Name="AppCoord2" />
+        <Directory Id="INSTALLFOLDER32" Name="AppCoord5" />
       </Directory>
     </StandardDirectory>
 
@@ -31,21 +31,21 @@
     </Component>
     <Component Bitness="always64">
       <File Source="!(bindpath.Esatto.AppCoordination.Common)\Esatto.AppCoordination.Common.tlb">
-        <TypeLib Id="540A24BD-82EC-41B8-8905-33A542EC5021" Description="Esatto_AppCoord2_Common" MajorVersion="4" MinorVersion="0" Language="0">
-          <Interface Id="06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E4" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="ICoordinator" />
-          <Interface Id="D29FBC53-6632-4826-8917-D1A95AE6471D" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IConnection" />
-          <Interface Id="30D76095-78D6-4855-AC96-30FC18E9B0F7" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IConnectionCallback" />
-          <Interface Id="6AB39F0A-9D96-4271-8A9A-ADD071F6743D" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IStaticEntryHandler" />
+        <TypeLib Id="540A24BD-82EC-41B8-8905-33A542EC5022" Description="Esatto_AppCoord2_Common" MajorVersion="4" MinorVersion="0" Language="0">
+          <Interface Id="06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E5" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="ICoordinator" />
+          <Interface Id="D29FBC53-6632-4826-8917-D1A95AE6471E" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IConnection" />
+          <Interface Id="30D76095-78D6-4855-AC96-30FC18E9B0F8" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IConnectionCallback" />
+          <Interface Id="6AB39F0A-9D96-4271-8A9A-ADD071F6743E" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IStaticEntryHandler" />
         </TypeLib>
       </File>
     </Component>
     <Component Bitness="always32" Directory="INSTALLFOLDER32">
       <File Source="!(bindpath.Esatto.AppCoordination.Common)\Esatto.AppCoordination.Common.tlb">
-        <TypeLib Id="540A24BD-82EC-41B8-8905-33A542EC5021" Description="Esatto_AppCoord2_Common" MajorVersion="4" MinorVersion="0" Language="0">
-          <Interface Id="06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E4" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="ICoordinator" />
-          <Interface Id="D29FBC53-6632-4826-8917-D1A95AE6471D" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IConnection" />
-          <Interface Id="30D76095-78D6-4855-AC96-30FC18E9B0F7" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IConnectionCallback" />
-          <Interface Id="6AB39F0A-9D96-4271-8A9A-ADD071F6743D" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IStaticEntryHandler" />
+        <TypeLib Id="540A24BD-82EC-41B8-8905-33A542EC5022" Description="Esatto_AppCoord2_Common" MajorVersion="4" MinorVersion="0" Language="0">
+          <Interface Id="06E26DC0-FA8C-496B-85CA-FC7E0AD4B4E5" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="ICoordinator" />
+          <Interface Id="D29FBC53-6632-4826-8917-D1A95AE6471E" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IConnection" />
+          <Interface Id="30D76095-78D6-4855-AC96-30FC18E9B0F8" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IConnectionCallback" />
+          <Interface Id="6AB39F0A-9D96-4271-8A9A-ADD071F6743E" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" Name="IStaticEntryHandler" />
         </TypeLib>
       </File>
     </Component>

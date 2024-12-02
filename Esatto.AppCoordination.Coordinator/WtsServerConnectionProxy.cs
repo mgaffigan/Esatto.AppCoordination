@@ -1,4 +1,5 @@
 ﻿using Esatto.AppCoordination.IPC;
+using Esatto.Utilities;
 using Esatto.Win32.RdpDvc;
 using Microsoft.Extensions.Logging;
 using static Esatto.AppCoordination.Coordinator.RdpDataFormatter;
@@ -10,30 +11,40 @@ internal sealed class WtsServerConnectionProxy : IConnectionCallback, IDisposabl
     private readonly ILogger Logger;
     private readonly IAsyncDvcChannel Channel;
     private readonly IConnection Connection;
+    private readonly AsyncMutex SyncWrite = new();
+    private readonly TaskCompletionSource<bool> StartupCompleted = new();
     private bool isShutdown;
-    private readonly object Sync = new();
-    private int NextCorrelation;
-    private readonly Dictionary<int, TaskCompletionSource<string>> Correlations = new();
 
     public WtsServerConnectionProxy(ILogger logger, ICoordinator coordinator, IAsyncDvcChannel channel)
     {
         this.Logger = logger;
         this.Channel = channel;
+
+        PreventWritesDuringStartup();
+
+        // NOTE: Connect calls IConnectionCallback.Inform during construction of the connection
+        //       which must deal with the partially constructed this.
         this.Connection = coordinator.Connect(this);
 
         ReadAsync();
     }
 
+    private async void PreventWritesDuringStartup()
+    {
+        using var _ = await SyncWrite.AcquireImmediateAsync().ConfigureAwait(false);
+        await StartupCompleted.Task;
+        await Task.Delay(500).ConfigureAwait(false);
+    }
+
+    // Called from threadpool - cannot throw.
     public void Dispose()
     {
         if (isShutdown) return;
         isShutdown = true;
 
-        Connection.Dispose();
-        try
-        {
-            Channel.Dispose();
-        }
+        StartupCompleted.TrySetResult(true);
+
+        try { DisposableExtensions.DisposeAll(Connection, Channel); }
         catch (Exception ex)
         {
             Logger.LogInformation(ex, "Failed to close RDP Channel");
@@ -46,7 +57,10 @@ internal sealed class WtsServerConnectionProxy : IConnectionCallback, IDisposabl
         {
             while (!isShutdown)
             {
-                var message = await Channel.ReadMessageAsync();
+                var readPromise = Channel.ReadMessageAsync();
+                StartupCompleted.TrySetResult(true);
+                var message = await readPromise.ConfigureAwait(false);
+                // Avoid blocking the read loop
                 ThreadPool.QueueUserWorkItem(_ =>
                 {
                     try
@@ -84,12 +98,6 @@ internal sealed class WtsServerConnectionProxy : IConnectionCallback, IDisposabl
             case CMD_INVOKE_REQUEST:
                 HandleInvokeRequest(data);
                 break;
-            case CMD_INVOKE_RESPONSE_RESULT:
-                HandleInvokeResponse(data, true);
-                break;
-            case CMD_INVOKE_RESPONSE_ERROR:
-                HandleInvokeResponse(data, false);
-                break;
             default:
                 throw new ProtocolViolationException("Unknown command");
         }
@@ -103,48 +111,14 @@ internal sealed class WtsServerConnectionProxy : IConnectionCallback, IDisposabl
 
     private void HandleInvokeRequest(byte[] data)
     {
-        var (correlation, path, key, request) = ReadInvokeRequest(data);
-        string result;
-        int resultType;
-        try
-        {
-            result = Connection.Invoke(path, key, request, out var failed);
-            if (failed)
-            {
-                throw InvokeFaultException.FromJson(result);
-            }
-            resultType = CMD_INVOKE_RESPONSE_RESULT;
-        }
-        catch (Exception ex)
-        {
-            if (ex is not InvokeFaultException)
-            {
-                Logger.LogWarning(ex, "Exception on invoke");
-            }
-
-            result = InvokeFaultException.ToJson(ex);
-            resultType = CMD_INVOKE_RESPONSE_ERROR;
-        }
-        SendMessage(CreateInvokeResponse(resultType, correlation, result));
-    }
-
-    private void HandleInvokeResponse(byte[] data, bool success)
-    {
-        var (correlation, payload) = ReadInvokeResponse(data);
-        TaskCompletionSource<string> tcs;
-        lock (Sync) { tcs = Correlations[correlation]; }
-        if (success)
-        {
-            tcs.TrySetResult(payload);
-        }
-        else
-        {
-            tcs.TrySetException(InvokeFaultException.FromJson(payload));
-        }
+        var (sourcePath, path, key, request) = ReadInvokeRequest(data);
+        // Coordinator transforms exceptions into reply messages, we should not see any exceptions here
+        Connection.Invoke(sourcePath, path, key, request);
     }
 
     async void IConnectionCallback.Inform(string sData)
     {
+        // Coordinator.Connect calls IConnectionCallback.Inform during construction of the connection
         if (Connection is null)
         {
             // Wait for the connection to be established - writes get lost?
@@ -154,43 +128,19 @@ internal sealed class WtsServerConnectionProxy : IConnectionCallback, IDisposabl
         SendMessage(CreateInformRequest(sData));
     }
 
-    string IConnectionCallback.Invoke(string path, string key, string payload, out bool failed)
+    // Called by coordinator (by way of ClientConnection), may throw (transformed to faults)
+    void IConnectionCallback.HandleInvoke(string? sourcePath, string path, string key, string payload)
     {
-        var tcsResult = new TaskCompletionSource<string>();
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        using var reg = cts.Token.Register(() => tcsResult.TrySetCanceled());
-        int correlation;
-        lock (Sync)
-        {
-            correlation = NextCorrelation++;
-            Correlations.Add(correlation, tcsResult);
-        }
-        try
-        {
-            SendMessage(CreateInvokeRequest(correlation, path, key, payload));
-            var result = tcsResult.Task.GetAwaiter().GetResult();
-            failed = false;
-            return result;
-        }
-        catch (Exception ex)
-        {
-            failed = true;
-            return InvokeFaultException.ToJson(ex);
-        }
-        finally
-        {
-            lock (Sync)
-            {
-                Correlations.Remove(correlation);
-            }
-        }
+        SendMessage(CreateInvokeRequest(sourcePath, path, key, payload));
     }
 
+    // NOTE: Async VOID, so this cannot throw
     private async void SendMessage(byte[] data)
     {
         try
         {
-            await Channel.SendMessageAsync(data, 0, data.Length);
+            using var _1 = await SyncWrite.AcquireAsync().ConfigureAwait(false);
+            await Channel.SendMessageAsync(data, 0, data.Length).ConfigureAwait(false);
         }
         catch (DvcChannelDisconnectedException)
         {

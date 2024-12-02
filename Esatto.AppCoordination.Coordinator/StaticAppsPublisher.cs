@@ -3,7 +3,6 @@ using Esatto.Win32.Com;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
-using Newtonsoft.Json.Linq;
 
 namespace Esatto.AppCoordination.Coordinator;
 
@@ -31,7 +30,7 @@ internal sealed class StaticEntriesPublisher : IHostedService, IConnectionCallba
             try
             {
                 var addr = new CAddress(CPath.From(entry.Key), entry.Value.Key);
-                entrySet.Entries.Add(addr.ToString(), JObject.FromObject(entry.Value.Properties));
+                entrySet.Entries.Add(addr, entry.Value.Value);
             }
             catch (Exception ex)
             {
@@ -57,7 +56,7 @@ internal sealed class StaticEntriesPublisher : IHostedService, IConnectionCallba
         // nop
     }
 
-    string IConnectionCallback.Invoke(string path, string key, string payload, out bool failed)
+    void IConnectionCallback.HandleInvoke(string? sourcePath, string path, string key, string payload)
     {
         var (registrationKey, _) = CPath.PopFirst(path);
         var config = Config.Entries[registrationKey];
@@ -68,17 +67,8 @@ internal sealed class StaticEntriesPublisher : IHostedService, IConnectionCallba
         }
 
         var inst = ComInterop.CreateLocalServer<IStaticEntryHandler>(config.FactoryClsid.Value);
-
-        try
-        {
-            ComInterop.CoAllowSetForegroundWindow(inst);
-        }
-        catch
-        {
-            Logger.LogInformation("CoAllowSetForegroundWindow failed");
-        }
-
-        return inst.Invoke(path, key, payload, out failed);
+        inst.CoAllowSetForegroundWindowNoThrow();
+        inst.HandleInvoke(sourcePath, path, key, payload);
     }
 }
 
@@ -125,7 +115,7 @@ public class StaticEntriesConfiguration
 public class StaticEntryConfiguration
 {
     public string Key { get; set; } = "/";
-    public Dictionary<string, JToken> Properties { get; } = new();
+    public EntryValue Value { get; } = new();
     public Guid? FactoryClsid { get; set; }
 
     public static StaticEntryConfiguration LoadFromKey(RegistryKey subkey, string subkeyName)
@@ -146,7 +136,7 @@ public class StaticEntryConfiguration
             }
             else
             {
-                entry.Properties.Add(valueName, JToken.FromObject(value));
+                entry.Value.Add(valueName, value);
             }
         }
         entry.Key ??= CPath.From(subkeyName);

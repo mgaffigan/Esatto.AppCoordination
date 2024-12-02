@@ -13,7 +13,7 @@ internal class PublishedEntryCollection
     private int NextEntityID;
 
     private readonly IConnection Connection;
-    private readonly ILogger Logger;
+    internal ILogger Logger { get; }
 
     public PublishedEntryCollection(IConnection connection, ILogger logger)
     {
@@ -34,7 +34,7 @@ internal class PublishedEntryCollection
         return entry;
     }
 
-    public Task<string> Invoke(CAddress address, string payload)
+    internal Task<string> HandleInvoke(CAddress address, string payload)
     {
         PublishedEntry? entry;
         lock (SyncPublished)
@@ -76,7 +76,7 @@ internal class PublishedEntryCollection
                 {
                     if (entry.Value.TryGetTarget(out var pe))
                     {
-                        entries.Entries.Add(pe.Address.ToString(), pe._Value.Value);
+                        entries.Entries.Add(pe.Address, pe._Value);
                     }
                 }
             }

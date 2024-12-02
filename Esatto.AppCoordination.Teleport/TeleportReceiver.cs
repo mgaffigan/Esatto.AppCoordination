@@ -1,12 +1,10 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Debug;
 using Esatto.Utilities;
 using System.Text.Json;
 using Esatto.Win32.Windows;
 using System.Diagnostics;
 using System.Text;
 using Esatto.Win32.Net;
-using System.Security.Policy;
 
 namespace Esatto.AppCoordination.Teleport;
 
@@ -19,20 +17,12 @@ internal static class TeleportReceiver
         Application.Run();
     }
 
-    private static string HandleInvocation(CoordinatedApp app, string payload, ILogger logger)
+    private static async Task<string> HandleInvocation(CoordinatedApp app, string payload, ILogger logger)
     {
         var req = JsonSerializer.Deserialize<InvokeRequestDto>(payload)
             ?? throw new ArgumentException("Invalid request");
         req.Validate();
 
-        // AppCoord has 1 minute timeout on invoke.  Downloading a file may
-        // take longer.
-        SynchronizationContext.Current.Post(_ => HandleInvocationInternal(app, req, logger), null);
-        return string.Empty;
-    }
-
-    private static void HandleInvocationInternal(CoordinatedApp app, InvokeRequestDto req, ILogger logger)
-    { 
         try
         {
             using var depth = new TeleportDepthScope();
@@ -43,7 +33,7 @@ internal static class TeleportReceiver
             }
             else if (req.File is not null)
             {
-                HandleFileInvocation(app, req.File, useOpenWith);
+                await HandleFileInvocation(app, req.File, useOpenWith);
             }
             else throw new NotSupportedException("No target specified");
         }
@@ -60,6 +50,7 @@ internal static class TeleportReceiver
             logger.LogError(ex, "Unhandled exception");
             MessageBox.Show(ex.Message, "Teleport", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+        return "";
     }
 
     private static void HandleUrlInvocation(string target, bool useOpenWith)
@@ -76,9 +67,9 @@ internal static class TeleportReceiver
         }
     }
 
-    private static void HandleFileInvocation(CoordinatedApp app, InvokeFileReferenceDto file, bool useOpenWith)
+    private static async Task HandleFileInvocation(CoordinatedApp app, InvokeFileReferenceDto file, bool useOpenWith)
     {
-        var localPath = DownloadFile(app, file);
+        var localPath = await DownloadFile(app, file);
 
         // launch the file
         if (useOpenWith)
@@ -91,7 +82,7 @@ internal static class TeleportReceiver
         }
     }
 
-    private static string DownloadFile(CoordinatedApp app, InvokeFileReferenceDto file)
+    private static async Task<string> DownloadFile(CoordinatedApp app, InvokeFileReferenceDto file)
     {
         var tempFile = Path.GetTempFileName();
         try
@@ -103,7 +94,8 @@ internal static class TeleportReceiver
             }
             else if (file.StreamKey is not null)
             {
-                ReadFileStream(app, file.StreamKey, tempFile);
+                using var cts = new CancellationTokenSource(TeleportSettings.Instance.MaxReadTime);
+                await ReadFileStream(app, file.StreamKey, tempFile, cts.Token);
             }
             else throw new NotSupportedException("Unknown file reference type");
 
@@ -231,12 +223,34 @@ internal static class TeleportReceiver
         return filename;
     }
 
-    private static void ReadFileStream(CoordinatedApp app, string streamKey, string tempFile)
+    private static async Task ReadFileStream(CoordinatedApp app, string streamKey, string tempFile, CancellationToken ct)
     {
         var streamEnt = app.ForeignEntities.SingleOrDefault(fe => fe.Key == streamKey)
             ?? throw new InvokeDeniedException("The file stream is no longer available");
-        using var stream = new FileStreamEntryReader(streamEnt);
+        var maxReadSize = (int)(long)(streamEnt.Value["MaxReadSize"]
+            ?? throw new InvalidOperationException("No MaxReadSize specified"));
+        var length = (int)(long)(streamEnt.Value["Length"]
+            ?? throw new InvalidOperationException("No Length specified"));
+
         using var file = File.Open(tempFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-        stream.CopyTo(file, stream.MaxReadSize);
+
+        try
+        {
+            // Copy to a local file
+            for (int pos = 0; pos < length;)
+            {
+                var cbToRead = Math.Min(maxReadSize, length - pos);
+                var resp = await streamEnt.InvokeAsync(JsonSerializer.Serialize(new StreamReadRequestDto(pos, cbToRead)), ct).ConfigureAwait(false);
+                var data = Convert.FromBase64String(resp);
+                if (data.Length != cbToRead) throw new InvalidOperationException("Provider returned unexpected length");
+                await file.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
+                pos += data.Length;
+            }
+        }
+        finally
+        {
+            // Close the provider
+            streamEnt.InvokeOneWay(JsonSerializer.Serialize(new StreamReadRequestDto(close: true)));
+        }
     }
 }

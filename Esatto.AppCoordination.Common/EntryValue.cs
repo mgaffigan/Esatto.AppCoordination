@@ -1,7 +1,9 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Collections;
+﻿using System.Collections;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+#if NET
 using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Esatto.AppCoordination;
 
@@ -64,45 +66,63 @@ public class EntryValue : IDictionary<string, object?>, IReadOnlyEntryValue
 {
     public string JsonValue
     {
-        get => Value.ToString(Formatting.None);
+        get => Value.ToJsonString(CoordinationConstants.JsonSerializerOptions);
         set
         {
             if (value is null) throw new ArgumentNullException(nameof(value));
-            Value = JToken.Parse(value);
+            Value = JsonNode.Parse(value)!;
         }
     }
 
-    internal EntryValue(JToken json)
+    internal EntryValue(JsonNode json)
     {
         this.Value = json;
     }
 
     public EntryValue()
     {
-        Value = new JObject();
+        Value = new JsonObject();
     }
 
     public EntryValue(string json)
     {
-        Value = JToken.Parse(json);
+        Value = JsonNode.Parse(json)!;
     }
 
     public EntryValue Clone() => new EntryValue(Value.DeepClone());
 
-    internal JToken Value;
-    internal IDictionary<string, JToken?> Dictionary => Value as JObject
+    internal JsonNode Value;
+    internal IDictionary<string, JsonNode?> Dictionary => Value as JsonObject
         ?? throw new InvalidOperationException("JsonValue is not object");
 
-    private static object? JTokenToValue(JToken? token)
-        => token is null ? null
-        : token is JValue jv ? jv.Value
-        : new JsonString(token.ToString(Formatting.None));
+    private static object? JTokenToValue(JsonNode? node)
+    {
+        if (node is null) return null;
 
-    private JToken ValueToJToken(object? value)
-        // JToken.FromObject does not tolerate nulls
-        => value is null ? JValue.CreateNull()
-        : value is JsonString js ? JToken.Parse((string)js)
-        : JToken.FromObject(value);
+        if (node is JsonValue jv)
+        {
+            switch (jv.GetValueKind())
+            {
+                case JsonValueKind.String: 
+                    return jv.GetValue<string>();
+
+                case JsonValueKind.True or JsonValueKind.False:
+                    return jv.GetValue<bool>();
+
+                case JsonValueKind.Number:
+                    var d = jv.GetValue<double>();
+                    if (d == (int)d) return (int)d;
+                    return d;
+            };
+        }
+
+        return new JsonString(node.ToJsonString(CoordinationConstants.JsonSerializerOptions));
+    }
+
+    private JsonNode? ValueToJToken(object? value)
+        => value is null ? null
+        : value is JsonString js ? JsonNode.Parse((string)js)
+        : JsonSerializer.SerializeToNode(value, CoordinationConstants.JsonSerializerOptions);
 
     #region Dictionary boilerplate
     public ICollection<string> Keys => Dictionary.Keys;
@@ -136,7 +156,7 @@ public class EntryValue : IDictionary<string, object?>, IReadOnlyEntryValue
         }
     }
 
-    public void Add(KeyValuePair<string, object?> item) => Dictionary.Add(item.Key, ValueToJToken(item));
+    public void Add(KeyValuePair<string, object?> item) => Dictionary.Add(item.Key, ValueToJToken(item.Value));
 
     public void Clear() => Dictionary.Clear();
 

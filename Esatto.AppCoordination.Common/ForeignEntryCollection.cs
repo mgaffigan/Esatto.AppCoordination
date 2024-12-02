@@ -1,13 +1,11 @@
 ﻿using Esatto.AppCoordination.IPC;
 using Esatto.Utilities;
-using Microsoft.Extensions.Logging;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+#if NET
 using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Esatto.AppCoordination;
 
@@ -37,10 +35,9 @@ public class ForeignEntryCollection : IReadOnlyList<ForeignEntry>, INotifyCollec
             removed = this.Entries.Values.ToList();
             foreach (var kvp in es.Entries)
             {
-                var address = new CAddress(kvp.Key);
-                if (this.Entries.TryGetValue(address, out var fe))
+                if (this.Entries.TryGetValue(kvp.Key, out var fe))
                 {
-                    if (fe.Update(kvp.Value))
+                    if (fe.Update(kvp.Value.Value))
                     {
                         updates.Add(fe);
                         updatedProj.AddRange(Projections.Where(p => p.Predicate(fe.Key)));
@@ -49,7 +46,7 @@ public class ForeignEntryCollection : IReadOnlyList<ForeignEntry>, INotifyCollec
                 }
                 else
                 {
-                    this.Entries.Add(address, fe = new ForeignEntry(Parent, address, kvp.Value));
+                    this.Entries.Add(kvp.Key, fe = new ForeignEntry(Parent, kvp.Key, kvp.Value));
                     newEntries.Add(fe);
                     updatedProj.AddRange(Projections.Where(p => p.Predicate(fe.Key)));
                 }
@@ -151,37 +148,5 @@ public class ForeignEntryCollection : IReadOnlyList<ForeignEntry>, INotifyCollec
                 .FirstOrDefault();
             return entry is not null;
         }
-    }
-}
-
-public class FilteredForeignEntryCollection : ReadOnlyObservableCollection<ForeignEntry>, IDisposable
-{
-    private readonly ForeignEntryCollection Parent;
-    internal readonly Func<string, bool> Predicate;
-    private readonly ObservableCollection<ForeignEntry> BaseList;
-
-    internal FilteredForeignEntryCollection(ForeignEntryCollection parent, Func<string, bool> predicate)
-        : this(parent, predicate, new ObservableCollection<ForeignEntry>())
-    {
-        // nop, just here to create the base list
-    }
-
-    private FilteredForeignEntryCollection(ForeignEntryCollection parent, Func<string, bool> predicate, ObservableCollection<ForeignEntry> baseList)
-        : base(baseList)
-    {
-        this.Parent = parent;
-        this.Predicate = predicate;
-        this.BaseList = baseList;
-        Invalidate();
-    }
-
-    public void Dispose()
-    {
-        this.Parent.RemoveProjection(this);
-    }
-
-    internal void Invalidate()
-    {
-        BaseList.MakeEqualTo(this.Parent.ToList(Predicate));
     }
 }

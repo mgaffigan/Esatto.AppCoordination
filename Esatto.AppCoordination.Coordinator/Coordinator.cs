@@ -1,8 +1,6 @@
 ﻿using Esatto.AppCoordination.IPC;
 using Microsoft.Extensions.Logging;
-using System.CodeDom;
 using System.Collections.Concurrent;
-using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 
 namespace Esatto.AppCoordination.Coordinator;
@@ -59,18 +57,32 @@ internal class Coordinator : ICoordinator
         }
     }
 
-    internal string Invoke(string path, string key, string payload, out bool failed)
+    internal void Invoke(string? sourcePath, string path, string key, string payload)
     {
         try
         {
             var (first, rest) = CPath.PopFirst(path);
-            return Connections[first].Invoke(rest, key, payload, out failed);
+            if (!Connections.TryGetValue(first, out var con))
+            {
+                throw new InvokeFaultException("No such connection");
+            }
+            con.HandleInvoke(sourcePath, rest, key, payload);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Dispatching invoke to {Path}:{Key} failed", path, key);
-            failed = true;
-            return InvokeFaultException.ToJson(ex);
+
+            // Report the failure to the caller, if existing
+            if (sourcePath is not null)
+            {
+                sourcePath = CPath.Suffix(sourcePath, ResponseStatusCodes.Failed);
+                // This cannot recurse since sourcePath is null on errors
+                try { Invoke(null, sourcePath, sourcePath, InvokeFaultException.ToJson(ex)); }
+                catch (Exception ex2)
+                {
+                    Logger.LogWarning(ex2, "Double fault sending InvokeFaultException to {Path}", sourcePath);
+                }
+            }
         }
     }
 

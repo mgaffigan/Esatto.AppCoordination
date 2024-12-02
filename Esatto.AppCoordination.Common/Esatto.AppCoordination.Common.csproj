@@ -24,7 +24,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Esatto.Utilities" />
     <PackageReference Include="Esatto.Win32.Com" />
   </ItemGroup>

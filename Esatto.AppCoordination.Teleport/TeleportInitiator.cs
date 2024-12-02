@@ -1,10 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Esatto.Utilities;
 using System.Text.Json;
-using Esatto.Win32.Windows;
-using System.Diagnostics;
-using System.Text;
-using Esatto.Win32.Net;
 
 namespace Esatto.AppCoordination.Teleport;
 
@@ -23,7 +19,7 @@ internal static class TeleportInitiator
             var destination = GetTargetForRequest(app, req.Registration);
             using var msgLoop = new FileStreamProviderServer(prov);
 
-            destination.Invoke(JsonSerializer.Serialize(req));
+            destination.InvokeOneWay(JsonSerializer.Serialize(req));
             msgLoop.Run();
         }
     }

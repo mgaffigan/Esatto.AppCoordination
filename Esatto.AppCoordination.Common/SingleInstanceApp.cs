@@ -1,7 +1,8 @@
-﻿using Esatto.Utilities;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using System.Text.Json;
+#if NET
 using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Esatto.AppCoordination;
 
@@ -27,44 +28,38 @@ public class SingleInstanceApp
     public static bool IsEmbedding(string[] args) => args.Any(a => string.Equals(a, "-embedding", StringComparison.OrdinalIgnoreCase));
 
     public bool TryInvokeActive(string[] args)
-        => TryInvokeActive(JsonConvert.SerializeObject(args), out _);
-    public bool TryInvokeActive(string payload,
-#if NET
-        [MaybeNullWhen(false)]
-#endif
-        out string response)
+        => TryInvokeActive(JsonSerializer.Serialize(args, CoordinationConstants.JsonSerializerOptions));
+    public bool TryInvokeActive(string payload)
     {
         try
         {
             if (!TryGetAlive(out var entry))
             {
-                response = null!;
                 return false;
             }
 
-            response = entry.Invoke(payload);
+            entry.InvokeOneWay(payload);
             return true;
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to invoke existing instance");
-
-            response = InvokeFaultException.ToJson(ex);
             return false;
         }
     }
 
-    public string Invoke(string payload)
+    public Task<string> InvokeAsync(string payload, CancellationToken ct = default)
     {
         if (!App.ForeignEntities.TryGetFirst(Key, out var entry))
         {
             throw new InvalidOperationException($"Key {Key} not found");
         }
 
-        return entry.Invoke(payload);
+        return entry.InvokeAsync(payload, ct);
     }
 
-    public void Invoke(string[] args) => Invoke(JsonConvert.SerializeObject(args));
+    public Task<string> InvokeAsync(string[] args)
+        => InvokeAsync(JsonSerializer.Serialize(args, CoordinationConstants.JsonSerializerOptions));
 
     public bool TryGetAlive(
 #if NET
@@ -76,13 +71,27 @@ public class SingleInstanceApp
             && entry.Value.ContainsKey("Alive");
     }
 
-    public PublishedEntry PublishEntry(EntryValue value, Action<string[]> action)
+    public void InvokeOneWay(string payload)
+    {
+        if (TryInvokeActive(payload)) return;
+
+        if (!App.ForeignEntities.TryGetFirst(Key, out var entry))
+        {
+            throw new InvalidOperationException($"Key {Key} not found");
+        }
+
+        entry.InvokeOneWay(payload);
+    }
+
+    public void InvokeOneWay(string[] args)
+        => InvokeOneWay(JsonSerializer.Serialize(args, CoordinationConstants.JsonSerializerOptions));
+
+    public PublishedEntry PublishEntry(EntryValue value, Func<string[], Task<string>> action)
     {
         return PublishEntry(value, payload =>
         {
-            action(JsonConvert.DeserializeObject<string[]>(payload)
+            return action(JsonSerializer.Deserialize<string[]>(payload, CoordinationConstants.JsonSerializerOptions)
                 ?? throw new FormatException());
-            return "";
         });
     }
 
@@ -113,23 +122,22 @@ public class SingleInstanceApp
         }
     }
 
-    public StaticEntryHandler RegisterStatic(Action<string[]> action)
+    public StaticEntryHandler RegisterStatic(Func<string[], Task<string>> action)
     {
         return RegisterStatic((_, _, payload) =>
         {
-            action(JsonConvert.DeserializeObject<string[]>(payload)
+            return action(JsonSerializer.Deserialize<string[]>(payload, CoordinationConstants.JsonSerializerOptions)
                 ?? throw new FormatException());
-            return "";
         });
     }
 
     public StaticEntryHandler RegisterStatic(StaticEntryAction action)
     {
         return new StaticEntryHandler(Clsid ?? throw new InvalidOperationException("No static CLSID provided"),
-            Logger, RegisterSuspended, action, SyncCtx);
+            Logger, RegisterSuspended, action, SyncCtx, App);
     }
 
-    public IDisposable PublishAndRegisterStatic(EntryValue value, Action<string[]> action)
+    public IDisposable PublishAndRegisterStatic(EntryValue value, Func<string[], Task<string>> action)
     {
         var entry = PublishEntry(value, action);
         try
@@ -143,15 +151,23 @@ public class SingleInstanceApp
         }
     }
 
-    private sealed class AggregateDisposable : IDisposable
+    public IDisposable PublishAndRegisterStatic(EntryValue value, Action<string[]> action)
     {
-        private readonly IDisposable[] Disposables;
-
-        public AggregateDisposable(params IDisposable[] disposables)
+        var entry = PublishEntry(value, Thunk);
+        try
         {
-            this.Disposables = disposables;
+            return new AggregateDisposable(entry, RegisterStatic(Thunk));
+        }
+        catch
+        {
+            entry.Dispose();
+            throw;
         }
 
-        public void Dispose() => Disposables.DisposeAll();
+        Task<string> Thunk(string[] args)
+        {
+            action(args);
+            return Task.FromResult("");
+        }
     }
 }

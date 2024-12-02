@@ -29,11 +29,11 @@ namespace Esatto.AppCoordination.DemoClient
             this.Title = $"Invoke {entry.Key}";
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private async void Button_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                MessageBox.Show($"Result: '{Entry.Invoke(tbPayload.Text)}'");
+                MessageBox.Show($"Result: '{await Entry.InvokeAsync(tbPayload.Text)}'");
             }
             catch (Exception ex)
             {

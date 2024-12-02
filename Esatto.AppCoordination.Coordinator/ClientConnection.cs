@@ -1,15 +1,12 @@
 ﻿using Esatto.AppCoordination.IPC;
-using Esatto.Utilities;
-using Esatto.Win32.Com;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using System.Runtime.InteropServices;
 
 namespace Esatto.AppCoordination.Coordinator;
 
 internal class ClientConnection : IDisposable
 {
-    private readonly AtomicReference<Dictionary<string, JToken>> Entries = new(new());
+    private readonly AtomicReference<Dictionary<CAddress, EntryValue>> Entries = new(new());
 
     private readonly ILogger Logger;
     private Coordinator? _Parent;
@@ -44,30 +41,22 @@ internal class ClientConnection : IDisposable
         Entries.Value = new();
     }
 
-    public string Invoke(string path, string key, string payload, out bool failed)
+    public void HandleInvoke(string? sourcePath, string path, string key, string payload)
     {
-        try
-        {
-            ComInterop.CoAllowSetForegroundWindow(Callback);
-        }
-        catch
-        {
-            Logger.LogInformation("CoAllowSetForegroundWindow failed");
-        }
+        Callback.CoAllowSetForegroundWindowNoThrow();
 
         try
         {
-            return Callback.Invoke(path, key, payload, out failed);
+            Callback.HandleInvoke(sourcePath, path, key, payload);
         }
         catch (COMException ex) when (ex.IsServerDisconnected())
         {
             Logger.LogError(ex, "Disconnecting {ID} due to exception", ID);
-            Dispose();
-            throw;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Exception in Invoke to {Path}", path);
+            try { Dispose(); }
+            catch (Exception ex2)
+            {
+                Logger.LogWarning(ex2, "Double-fault when disconnecting {Path} due to exception", path);
+            }
             throw;
         }
     }
@@ -105,19 +94,20 @@ internal class ClientConnection : IDisposable
 
     private void Publish(EntrySet data)
     {
+        // Append a prefix with the connection ID
         Entries.Value = data.Entries.ToDictionary(
-            kvp => 
-            {
-                var addr = new CAddress(kvp.Key);
-                return new CAddress(CPath.Prefix(ID, addr.Path), addr.Key).ToString();
-            },
+            kvp => new CAddress(CPath.Prefix(ID, kvp.Key.Path), kvp.Key.Key),
             kvp => kvp.Value);
         Parent.OnEntriesChanged(this);
     }
 
     internal void GetView(EntrySet results)
     {
-        results.Entries.AddRange(Entries.Value);
+        var entries = Entries.Value;
+        foreach (var entry in entries)
+        {
+            results.Entries.Add(entry.Key, entry.Value);
+        }
     }
 
     // Thunk will be GC'd once connection is released
@@ -144,9 +134,10 @@ internal class ClientConnection : IDisposable
             Connection.Publish(EntrySet.FromJson(data));
         }
 
-        public string Invoke(string path, string key, string payload, out bool failed)
+        public void Invoke(string? sourcePath, string path, string key, string payload)
         {
-            return Connection.Parent.Invoke(path, key, payload, out failed);
+            if (sourcePath is not null) sourcePath = CPath.Prefix(Connection.ID, sourcePath);
+            Connection.Parent.Invoke(sourcePath, path, key, payload);
         }
     }
 }

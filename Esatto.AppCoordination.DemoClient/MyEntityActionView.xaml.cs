@@ -28,11 +28,11 @@ namespace Esatto.AppCoordination.DemoClient
 
         public ForeignEntry ViewModel => (ForeignEntry)DataContext;
 
-        private void btAction_Click(object sender, RoutedEventArgs e)
+        private async void btAction_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                ViewModel.Invoke("test");
+                await ViewModel.InvokeAsync("test");
             }
             catch (Exception ex)
             {

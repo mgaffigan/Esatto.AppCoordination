@@ -1,5 +1,5 @@
 ﻿using Esatto.Utilities;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace Esatto.AppCoordination;
 
@@ -9,16 +9,16 @@ public class ForeignEntry
     internal readonly CAddress Address;
     private readonly List<PublishedEntry> Dependents = new();
 
-    internal ForeignEntry(CoordinatedApp parent, CAddress address, JToken value)
+    internal ForeignEntry(CoordinatedApp parent, CAddress address, EntryValue value)
     {
         this.Parent = parent;
         this.Address = address;
-        this._Value = new EntryValue(value);
+        this._Value = value;
     }
 
-    internal bool Update(JToken value)
+    internal bool Update(JsonNode value)
     {
-        if (JToken.DeepEquals(value, _Value.Value))
+        if (JsonNode.DeepEquals(value, _Value.Value))
         {
             return false;
         }
@@ -29,7 +29,11 @@ public class ForeignEntry
 
     public override string ToString() => Address.ToString();
 
-    public string Invoke(string payload) => Parent.Invoke(Address, payload);
+    public Task<string> InvokeAsync(string payload, CancellationToken ct = default)
+        => Parent.InvokeAsync(Address, payload, ct);
+
+    public void InvokeOneWay(string payload)
+        => Parent.InvokeOneWay(Address, payload);
 
     public string SourcePath => Address.Path;
     public string Key => Address.Key;

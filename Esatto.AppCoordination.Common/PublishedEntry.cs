@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Collections;
+﻿using Microsoft.Extensions.Logging;
+using System.Text.Json.Nodes;
+#if NET
 using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Esatto.AppCoordination;
 
@@ -34,6 +35,13 @@ public class PublishedEntry : IDisposable
     {
         if (isDisposed) return;
         isDisposed = true;
+
+#if DEBUG
+        if (!isDisposing)
+        {
+            Parent.Logger.LogInformation("Leaked PublishedEntry instance {Address}.  Did you forget to call Dispose()?", Address);
+        }
+#endif
 
         Parent.RemoveEntry(Address);
 
@@ -77,7 +85,7 @@ public class PublishedEntry : IDisposable
             }
 
             var dup = value.Clone();
-            if (_Value is not null && JToken.DeepEquals(_Value.Value, dup.Value))
+            if (_Value is not null && JsonNode.DeepEquals(_Value.Value, dup.Value))
             {
                 return;
             }

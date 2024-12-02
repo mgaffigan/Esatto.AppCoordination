@@ -44,6 +44,19 @@ public static class CPath
         return (first, rest);
     }
 
+    public static (string rest, string last) PopLast(string path)
+    {
+        Validate(path);
+        if (path.Length < 3 /* /a/ */)
+        {
+            throw new ArgumentOutOfRangeException("Path must contain at least one element");
+        }
+        var iSeg2 = path.LastIndexOf('/', path.Length - 2);
+        var last = path.Substring(iSeg2 + 1, path.Length - iSeg2 - 2);
+        var rest = path.Substring(0, iSeg2 + 1);
+        return (rest, last);
+    }
+
     public static string Prefix(string first, string path)
     {
         if (first.Contains('/')) throw new ArgumentOutOfRangeException(nameof(first));
