@@ -1,61 +1,154 @@
 ﻿# Teleport
-Allow local applications to be opened from within an RDS session (and vice versa).
 
-## Installation and Configuration
-Install teleport on the RDS server and all clients.  On the client, configure which
-applications should be advertised for use on the server.  Connect to the server and
-"install" the advertised applications as file associations.
+Teleport sends a file open or URL launch from one Windows session to another coordinated
+session. The common use case is opening selected links or files from RemoteApp or RDS on
+the user's local computer, but the flow can work in either direction.
 
-## How it works
-Advertised applications register static entries:
+## Before you start
 
-```JSON
-{
-    "/Teleport/": {
-        "DisplayName": "ComputerName",
-        "File
-    },
-    "/Teleport/Protocol/call/": {
-        "DisplayName": "Microsoft Teams",
-        "Icon": "AAAAA==",
-        "Priority": 10000
-    }
-}
+- Install Esatto Application Coordination on every participating machine.
+- Run configuration from an elevated PowerShell session.
+- Import the Teleport module from the install folder:
+
+```powershell
+Import-Module "C:\Program Files\Esatto\AppCoord5\TeleportConfig.psd1"
 ```
 
-When a user connects to the server, the server will enumerate all advertised applications
-and create file/protocol associations for them.  
+Teleport configuration has two separate parts:
 
-### File Associations
+- Source registration: on the machine where the user clicks the link or opens the file, register
+  Teleport as the Windows handler for that file type or URL scheme.
+- Target advertisement: on the machine that should receive the request, advertise that file type
+  or URL scheme to AppCoord.
 
-When the user opens a file with the associated extension, the server will launch the 
-application on the client. The initiator invokes the teleport entry with the highest 
-priority.
+If you want traffic in both directions, configure both parts on both sides.
 
-```JSON
-{ "Arguments": [ { "FileName": "test.txt", "Content": "AAAAA==" } ] }
+## Quick start
+
+### Example: open `tel:` links from RDS on the local PC
+
+On the RDS host, register Teleport as the handler for `tel:`:
+
+```powershell
+Import-Module "C:\Program Files\Esatto\AppCoord5\TeleportConfig.psd1"
+Add-TeleportProtocol -Scheme tel
 ```
 
-If the file exceeds the max in-memory file-size, the initiator will register an
-entry to read the file chunk by chunk (`/Teleport/File/65A3B1CAD75843F39FF132314110C107/`).
+On the local PC, advertise that it can receive `tel:`:
 
-Invoke:
-```JSON
-{ "Arguments": [ { "FileName": "test.txt", "FileEntry": "/Teleport/File/65A3B1CAD75843F39FF132314110C107/" } ] }
+```powershell
+Import-Module "C:\Program Files\Esatto\AppCoord5\TeleportConfig.psd1"
+Add-TeleportAdvertisement -Registration tel:
 ```
 
-The handler will read the file chunk by chunk by invoking the file entry:
-```JSON
-{ "Offset": 0, "Length": 1048576 }
+Restart the coordinator or reconnect the session, then open a `tel:` link in RDS to test.
+
+### Example: open `.pdf` files from the local PC inside RDS
+
+On the local PC, register Teleport as the handler for `.pdf`:
+
+```powershell
+Import-Module "C:\Program Files\Esatto\AppCoord5\TeleportConfig.psd1"
+Add-TeleportFileType -Extension pdf
 ```
 
-The response is the base64 encoded chunk of the file.
+On the RDS host, advertise that it can receive `.pdf`:
 
-Once the file has been received, it is saved to the "Teleported Files" directory
-in `CSIDL_MYDOCUMENTS` with a unique name.  The target application is looked up
-from the advertisement configuration and launched with the file as an argument.
+```powershell
+Import-Module "C:\Program Files\Esatto\AppCoord5\TeleportConfig.psd1"
+Add-TeleportAdvertisement -Registration .pdf
+```
 
-### Protocol Associations
+Restart the coordinator or reconnect the session, then open a PDF on the local PC to test.
 
-When the user invokes a protocol, the server will launch the application on the client.
-from the advertisement configuration and launched with the file as an argument.
+## Registering file types and protocols
+
+Use these commands to manage Teleport registrations:
+
+```powershell
+Add-TeleportProtocol -Scheme tel
+Add-TeleportFileType -Extension pdf
+Add-TeleportAdvertisement -Registration tel:
+Add-TeleportAdvertisement -Registration .pdf -Priority 100
+
+Get-TeleportProtocol
+Get-TeleportFileType
+Get-TeleportAdvertisement
+```
+
+Notes:
+
+- `Add-TeleportProtocol` registers Teleport as the Windows handler for a URL scheme.
+- `Add-TeleportFileType` registers Teleport as the Windows handler for a file extension.
+- `Add-TeleportAdvertisement` makes the current machine discoverable as a Teleport target.
+- Smaller `Priority` values win when multiple targets advertise the same registration.
+- Advertisements are published by the coordinator, so restart the coordinator after changing them.
+
+## Deployment with Group Policy
+
+Use Group Policy or another endpoint management tool in two steps:
+
+1. Deploy the Esatto Application Coordination MSI to each session host and endpoint.
+2. Run an elevated startup script that imports `TeleportConfig.psd1` and applies the registrations
+   needed for that machine's role.
+
+Example startup script:
+
+```powershell
+$teleportModule = "C:\Program Files\Esatto\AppCoord5\TeleportConfig.psd1"
+Import-Module $teleportModule
+
+# Source-side registrations
+Add-TeleportProtocol -Scheme tel
+Add-TeleportFileType -Extension pdf
+
+# Target-side advertisements
+Add-TeleportAdvertisement -Registration tel:
+Add-TeleportAdvertisement -Registration .pdf
+```
+
+The commands write to `HKLM` and are safe to re-run. Use only the registrations that make
+sense for that machine.  Alternatively, you can capture the registry changes the script
+makes and deploy those via Group Policy Preferences, a .reg file, or another mechanism.
+
+## Settings and limits
+
+Teleport reads settings from:
+
+`HKLM\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport`
+
+The most useful settings are:
+
+- `PermittedFileTypes` and `BlockedFileTypes`
+- `PermittedUrlSchemes` and `BlockedUrlSchemes`
+- `MaxMemoryFileSize` and `MaxFileSize`
+- `PromptForSaveFile`
+- `DefaultSaveDirectoryFolderID` and `DefaultSaveDirectory`
+
+Default behavior:
+
+- Files larger than 1 MB are streamed instead of sent inline.
+- Files larger than 1 GB are blocked unless `MaxFileSize` is increased.
+- Received files are saved to the user's Downloads folder unless a different save location is
+  configured.
+
+## Troubleshooting
+
+- `No Teleport target is available`: no connected machine is advertising that registration.
+- `Scheme 'x' is not permitted` or `File type 'x' is not permitted`: review the allow/block
+  lists under the Teleport registry key.
+- `File is too large to be sent via Teleport`: reduce the file size or raise `MaxFileSize`.
+- Windows shows Open With instead of opening directly: Teleport hit the recursion limit to avoid
+  launching itself in a loop.
+- Windows does not show Teleport as an option for a file type or URL scheme: check "Default Programs" in Windows Settings.  Restart the shell or reboot if you just added the registration.
+- A new advertisement does not show up: restart the coordinator on the target machine.
+
+The demo client located at `C:\Program Files\Esatto\AppCoord5\Esatto.AppCoordination.DemoClient.exe` 
+allows inspection and can be used to confirm communication between machines. Hover over 
+the `/Teleport/Target/` entries to see advertisements.
+
+## Implementation details
+
+Teleport runs as a background service on both the server and client that communcates
+over RDP Virtual Channels (the same as printer and clipboard redirection).  For 
+detailed implementation and design information, see [Design.md](Design.md).
