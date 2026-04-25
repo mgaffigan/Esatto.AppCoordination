@@ -11,7 +11,7 @@ namespace Esatto.AppCoordination.Coordinator;
 internal class WtsSessionChangeWatcher : IHostedService
 {
     private readonly ILogger Logger;
-    private readonly ICoordinator Coordinator;
+    private readonly Coordinator Coordinator;
     private SessionChangeHandler? Handler;
 
     public WtsSessionChangeWatcher(ILogger<WtsSessionChangeWatcher> logger, Coordinator coordinator)
@@ -44,6 +44,12 @@ internal class WtsSessionChangeWatcher : IHostedService
         if (e.Event == WTS_EVENT.WTS_REMOTE_CONNECT)
         {
             TryConnect();
+        }
+        else if (e.Event == WTS_EVENT.WTS_REMOTE_DISCONNECT
+            || e.Event == WTS_EVENT.WTS_SESSION_LOGOFF
+            || e.Event == WTS_EVENT.WTS_SESSION_TERMINATE)
+        {
+            Coordinator.RefreshConnections();
         }
     }
 

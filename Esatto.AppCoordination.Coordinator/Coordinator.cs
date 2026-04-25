@@ -38,22 +38,23 @@ internal class Coordinator : ICoordinator
     {
         if (Connections.TryRemove(con.ID, out _))
         {
-            var now = Interlocked.Increment(ref Information);
-            foreach (var other in Connections.Values)
-            {
-                other.EntriesChanged(now);
-            }
+            RefreshConnections();
         }
     }
 
     // noexcept, called on arbitrary connection stack
     internal void OnEntriesChanged(ClientConnection con)
     {
+        RefreshConnections(con);
+    }
+
+    internal void RefreshConnections(ClientConnection? except = null)
+    {
         var now = Interlocked.Increment(ref Information);
-        foreach (var other in Connections.Values)
+        foreach (var con in Connections.Values)
         {
-            if (other == con) continue;
-            other.EntriesChanged(Information);
+            if (con == except) continue;
+            con.EntriesChanged(now);
         }
     }
 
