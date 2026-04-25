@@ -25,8 +25,8 @@ internal static class TeleportReceiver
 
         try
         {
-            using var depth = new TeleportDepthScope();
-            bool useOpenWith = depth.Depth > TeleportSettings.Instance.RecursionLimit;
+            using var depth = new TeleportDepthScope(req.Depth);
+            bool useOpenWith = depth.PriorDepth > TeleportSettings.Instance.RecursionLimit;
             if (req.Url is not null)
             {
                 HandleUrlInvocation(req.Url, useOpenWith);

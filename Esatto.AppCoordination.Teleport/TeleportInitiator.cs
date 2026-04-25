@@ -65,8 +65,9 @@ internal static class TeleportInitiator
     private static (InvokeRequestDto, FileStreamProvider?) CreateUrlRequest(string target)
     {
         var uri = ParseAndValidateUrl(target);
+        int depth = TeleportDepthScope.GetCurrentDepth();
 
-        return (new InvokeRequestDto(uri.Scheme, target), null);
+        return (new InvokeRequestDto(uri.Scheme, target, depth), null);
     }
 
     public static Uri ParseAndValidateUrl(string target)
@@ -94,18 +95,19 @@ internal static class TeleportInitiator
         }
 
         string extension = GetExtensionAndValidate(target);
+        int depth = TeleportDepthScope.GetCurrentDepth();
         
         var filename = Path.GetFileName(target);
         if (fileStream.Value.Length > TeleportSettings.Instance.MaxMemoryFileSize)
         {
             var fileProv = new FileStreamProvider(app, fileStream, length);
             var fileRef = new InvokeFileReferenceDto(filename, fileProv.StreamKey);
-            return (new InvokeRequestDto(extension, fileRef), fileProv);
+            return (new InvokeRequestDto(extension, fileRef, depth), fileProv);
         }
         else
         {
             var fileRef = new InvokeFileReferenceDto(filename, fileStream.Value.GetByteArray());
-            return (new InvokeRequestDto(extension, fileRef), null);
+            return (new InvokeRequestDto(extension, fileRef, depth), null);
         }
     }
 
