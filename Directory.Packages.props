@@ -15,6 +15,6 @@
     <PackageVersion Include="Esatto.Win32.Registry.AdmxExporter" Version="3.0.20" />
     <PackageVersion Include="Esatto.Win32.RdpDvc.Common" Version="3.0.20" />
     <PackageVersion Include="System.Text.Json" Version="8.0.5" />
-    <PackageVersion Include="dSPACE.Runtime.InteropServices.BuildTasks" Version="1.12.2" />
+    <PackageVersion Include="dSPACE.Runtime.InteropServices.BuildTasks" Version="2.5.3" />
   </ItemGroup>
 </Project>
