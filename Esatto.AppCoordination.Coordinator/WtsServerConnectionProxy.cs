@@ -19,6 +19,7 @@ internal sealed class WtsServerConnectionProxy : IConnectionCallback, IDisposabl
     {
         this.Logger = logger;
         this.Channel = channel;
+        this.Channel.Disconnected += Channel_Disconnected;
 
         PreventWritesDuringStartup();
 
@@ -43,12 +44,19 @@ internal sealed class WtsServerConnectionProxy : IConnectionCallback, IDisposabl
         isShutdown = true;
 
         StartupCompleted.TrySetResult(true);
+        Channel.Disconnected -= Channel_Disconnected;
 
         try { DisposableExtensions.DisposeAll(Connection, Channel); }
         catch (Exception ex)
         {
             Logger.LogInformation(ex, "Failed to close RDP Channel");
         }
+    }
+
+    private void Channel_Disconnected(object? sender, EventArgs e)
+    {
+        Logger.LogInformation("Disconnecting RDP Client");
+        Dispose();
     }
 
     private async void ReadAsync()
@@ -79,9 +87,14 @@ internal sealed class WtsServerConnectionProxy : IConnectionCallback, IDisposabl
             Logger.LogInformation("Disconnecting RDP Client");
             Dispose();
         }
+        catch (OperationCanceledException) when (isShutdown)
+        {
+            // The underlying channel cancels pending reads during normal disconnect.
+        }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to read message from client");
+            Dispose();
         }
     }
 
@@ -150,6 +163,7 @@ internal sealed class WtsServerConnectionProxy : IConnectionCallback, IDisposabl
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to send message to client");
+            Dispose();
         }
     }
 }
