@@ -1,8 +1,8 @@
 ﻿function CreateOrGetItem($path) {
 	try {
-		get-item $path
+		get-item -Path $path -ErrorAction Stop
 	} catch {
-		new-item $path
+		new-item -Path $path -Force
 	}
 }
 
@@ -48,6 +48,12 @@ function Add-TeleportProtocol {
 	if (-not (Test-Path $TeleportPath)) {
 		throw "Teleport executable not found at $TeleportPath"
 	}
+		
+	CreateOrGetItem "hklm:\SOFTWARE\Classes\$scheme" `
+		| Set-ItemProperty -Name '(Default)' -Value "URL:$scheme Protocol";
+		
+	CreateOrGetItem "hklm:\SOFTWARE\Classes\$scheme" `
+		| Set-ItemProperty -Name 'URL Protocol' -Value "";
 
 	$invokeCommand = "`"$TeleportPath`" url `"%1`""
 	$progid = "Esatto.AppCoordination.Teleport.$scheme";
@@ -58,6 +64,8 @@ function Add-TeleportProtocol {
 		| Set-ItemProperty -Name '(Default)' -Value "Esatto Teleport $scheme Handler";
 	CreateOrGetItem "hklm:\SOFTWARE\Classes\$progid\shell\open\command" `
 		| Set-ItemProperty -Name '(Default)' -Value $invokeCommand;
+
+	Refresh-WindowsShell;
 }
 
 <#
@@ -114,6 +122,9 @@ function Add-TeleportFileType {
 		throw "Teleport executable not found at $TeleportPath"
 	}
 
+	CreateOrGetItem "hklm:\SOFTWARE\Classes\.$extension" `
+		| Set-ItemProperty -Name '(Default)' -Value "$extension file";
+
 	$invokeCommand = "`"$TeleportPath`" file `"%1`""
 	$progid = "Esatto.AppCoordination.Teleport.$extension";
 	CreateOrGetItem "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\Teleport\Capabilities\FileAssociations" `
@@ -123,6 +134,8 @@ function Add-TeleportFileType {
 		| Set-ItemProperty -Name '(Default)' -Value "$extension (Esatto Teleport)";
 	CreateOrGetItem "hklm:\SOFTWARE\Classes\$progid\shell\open\command" `
 		| Set-ItemProperty -Name '(Default)' -Value $invokeCommand;
+
+	Refresh-WindowsShell;
 }
 
 <#
@@ -181,6 +194,8 @@ function Add-TeleportAdvertisement {
 
 	CreateOrGetItem "hklm:\SOFTWARE\In Touch Technologies\Esatto\AppCoordination\StaticEntries\Teleport" `
 		| Set-ItemProperty -Name $registration -Value $priority;
+	
+	Write-Warning "Restart coordinator to apply changes";
 }
 
 <#
