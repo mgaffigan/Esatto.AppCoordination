@@ -1,6 +1,6 @@
 ﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package Name="Esatto Application Coordination" Manufacturer="In Touch Technologies"
-           Version="4.3.0" UpgradeCode="{939BFD63-B6E1-44BC-BD9E-225DDC30CF51}"
+           Version="$(var.VersionPrefix)" UpgradeCode="{939BFD63-B6E1-44BC-BD9E-225DDC30CF51}"
            Language="1033" Compressed="yes" InstallerVersion="200" Scope="perMachine">
     <MajorUpgrade AllowDowngrades="yes" />
     <MediaTemplate EmbedCab="yes" />

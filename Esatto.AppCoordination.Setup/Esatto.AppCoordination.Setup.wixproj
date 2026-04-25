@@ -1,10 +1,13 @@
 ﻿<Project Sdk="WixToolset.Sdk/5.0.0">
+  <Import Project="..\Assets\EsattoMsbuildCommon.targets" />
+
   <PropertyGroup>
     <!-- Platforms seems to prevent VS from allowing selection of a non-x64 platform -->
     <Platforms>x64</Platforms>
     <!-- Platform should default InstallerPlatform, but I'm tired of reading wix's msbuild scripts -->
     <Platform>x64</Platform>
     <InstallerPlatform>x64</InstallerPlatform>
+    <DefineConstants>VersionPrefix=$(VersionPrefix);$(DefineConstants)</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <SuppressIces>ICE61</SuppressIces>

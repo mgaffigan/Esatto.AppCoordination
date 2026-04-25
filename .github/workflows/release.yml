@@ -13,9 +13,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build Esatto.AppCoordination.Common
-      run: dotnet pack Esatto.AppCoordination.Common -c Release -p:Version=${{github.ref_name}}
+      run: dotnet pack Esatto.AppCoordination.Common -c Release -p:Version=${{github.ref_name}} -p:VersionPrefix=${{github.ref_name}}
     - name: Build setup
-      run: dotnet build Esatto.AppCoordination.Setup -c Release -p:Version=${{github.ref_name}}
+      run: dotnet build Esatto.AppCoordination.Setup -c Release -p:Version=${{github.ref_name}} -p:VersionPrefix=${{github.ref_name}}
     - uses: ncipollo/release-action@v1
       with:
         artifacts: 'Esatto.AppCoordination.Setup\bin\x64\Release\Esatto.AppCoordination.Setup.msi,Esatto.AppCoordination.Common/bin/Release/Esatto.AppCoordination.Common.${{github.ref_name}}.nupkg'
