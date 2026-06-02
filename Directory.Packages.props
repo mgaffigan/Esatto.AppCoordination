@@ -3,18 +3,17 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
-    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="Esatto.Utilities" Version="3.0.20" />
-    <PackageVersion Include="Esatto.Win32.Com" Version="3.0.17" />
-    <PackageVersion Include="Esatto.Win32.Common" Version="3.0.17" />
-    <PackageVersion Include="Esatto.Win32.CommonControls" Version="3.0.19" />
-    <PackageVersion Include="Esatto.Win32.Registry" Version="3.0.17" />
-    <PackageVersion Include="Esatto.Win32.Registry.AdmxExporter" Version="3.0.20" />
-    <PackageVersion Include="Esatto.Win32.RdpDvc.Common" Version="3.0.20" />
-    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8" />
+    <PackageVersion Include="Esatto.Utilities" Version="3.0.22" />
+    <PackageVersion Include="Esatto.Win32.Com" Version="3.0.22" />
+    <PackageVersion Include="Esatto.Win32.Common" Version="3.0.22" />
+    <PackageVersion Include="Esatto.Win32.CommonControls" Version="3.0.22" />
+    <PackageVersion Include="Esatto.Win32.Registry" Version="3.0.22" />
+    <PackageVersion Include="Esatto.Win32.Registry.AdmxExporter" Version="3.0.22" />
+    <PackageVersion Include="Esatto.Win32.RdpDvc.Common" Version="3.0.22" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.8" />
     <PackageVersion Include="dSPACE.Runtime.InteropServices.BuildTasks" Version="2.5.3" />
   </ItemGroup>
 </Project>

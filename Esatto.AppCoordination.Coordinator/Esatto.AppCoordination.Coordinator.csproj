@@ -10,6 +10,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <WarningsAsErrors>nullable</WarningsAsErrors>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <Import Project="..\assets\EsattoCSCommon.targets" />
 
